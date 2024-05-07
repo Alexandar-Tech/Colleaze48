@@ -12,7 +12,15 @@
       "backgroundColor": "#ffffff"
     },
     "assetBundlePatterns": [
-      "**/*"
+      "assets/fonts/*"
+    ],
+    "plugins": [
+      [
+        "expo-document-picker",
+        {
+          "iCloudContainerEnvironment": "Production"
+        }
+      ]
     ],
     "ios": {
       "supportsTablet": true,
@@ -31,7 +39,7 @@
     },
     "extra": {
       "eas": {
-        "projectId": "dfd2b0b7-b8ef-4957-8e25-7b3bf7617954"
+        "projectId": "83930076-4712-4843-b6e0-da7fc1e93f27"
       }
     }
   }

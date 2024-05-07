@@ -1,12 +1,18 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, Switch,Image, TouchableOpacity,ScrollView } from 'react-native';
+import React, { useState,useEffect } from 'react';
+import { View, Text, StyleSheet, Switch,Image, TouchableOpacity,ScrollView,ActivityIndicator } from 'react-native';
 import Icon from 'react-native-vector-icons/Entypo';
 import { LinearGradient } from 'expo-linear-gradient';
+import { API_GET_FEES } from '../../APILIST/ApiList';
+import axios from 'axios';
 
 function Fees({ route,navigation }) {
+    const FeesData = route['params']['LoginData']['data']
+    const token = FeesData['token']
+    const user_id = FeesData['user_detail']['user_id']
     const [selectedTab, setSelectedTab] = useState(0);
-
     const [isEnabled, setIsEnabled] = useState(false);
+    const [data, setData] = useState(null);
+    const [loading, setLoading] = useState(true);
 
     const toggleSwitch = () => {
         setIsEnabled((previousState) => !previousState);
@@ -15,50 +21,115 @@ function Fees({ route,navigation }) {
     const tabs = [
         { id: 0, title: 'All', content: 'Content for All',},
         { id: 1, title: 'Overdue', content: 'Content for Videos' },
+        // { id: 2, title: 'Paid', content: 'Content for Images' },
         { id: 2, title: 'Paid', content: 'Content for Images' },
     ];
+
+
+    let user_data = {
+        "user_id" : user_id,
+    }
+    useEffect(() => {
+        axios.post(API_GET_FEES,user_data,
+        {
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+            },
+        })
+        .then(response => {
+            setData(response.data);
+            setLoading(false)
+        })
+        .catch(error => {
+            setData(error.response.data);
+        });
+    }, []);
 
     const All = () =>{
         return(
             <View>
                 <View>
-                    <Video />
+                    <Upcoming />
                 </View>
                 <View>
-                    <Images />
+                    <Video />
                 </View>
+                {/* <View>
+                    <Images />
+                </View> */}
             </View>
         )
     }
     const Video = () =>{
+
         return(
-            <View style={{flex:1,margin:15}}>
-                <View style={{height:220,width:'100%',backgroundColor:'#fff',borderRadius:20}}>
-                    <View style={{flexDirection:'row',justifyContent:'space-evenly',marginTop:20}}>
-                        <View style={{height:30,width:100,backgroundColor:'#DCF2FF',borderRadius:20,justifyContent:'center',alignItems:'center'}}>
-                            <Text style={{fontSize:14,fontWeight:'bold',color:'#1D2F59'}}>Tution</Text>
+            <View>
+            {
+                data["data"]["overdue"].map((item,index)=>(
+                    <View style={{flex:1,margin:15}} key={index}>
+                        <View style={{height:220,width:'100%',backgroundColor:'#fff',borderRadius:20}}>
+                        <View style={styles.fittotext}>
+                                <View style={styles.feestypebox}>
+                                    <Text style={[styles.feestypetext,,{fontSize:14}]}>{item.fees_assigning_details.fee_master.name}</Text>
+                                </View>
+                                <View style={[styles.feestypebox,{borderColor:'red',backgroundColor:'#fff',borderWidth:1}]}>
+                                    <Text style={{fontSize:14,fontWeight:'bold',color:'red'}}>Overdue</Text>
+                                </View>
+                                <View>
+                                    <Text style={[styles.feestypetext,,{fontSize:14}]}>₹ {item.amount}</Text>
+                                    <Text style={[styles.feestypetext,,{fontSize:10}]}>Second</Text>
+                                </View>
+                            </View>
+                            <View style={{padding:10}}>
+                                <Text style={[styles.feestypetext,{fontSize:18,opacity:0.5}]}>Tutuion Fee for SEM-1</Text>
+                                <Text style={[styles.feestypetext,,{fontSize:15}]}>Due: {item.date_left.split("(")[0]} <Text style={{color:'red'}}> ({item.date_left.split('(')[1]}</Text></Text>
+                            </View>
+                            <View style={{height:50,width:'90%',backgroundColor:'#CDF5F7',margin:10,alignSelf:'center',borderRadius:10,flexDirection:'row',justifyContent:'space-between',alignItems:'center',padding:10}}>
+                                <Text style={{fontSize:12,fontWeight:'bold',color:'#1D2F59'}}>First Paid: 12 Jun 2022</Text>
+                                <Text style={{fontSize:12,fontWeight:'bold',color:'#00C3AC'}}>₹ 15,000</Text>
+                                <Text style={{fontSize:12,fontWeight:'bold',color:'#1D2F59',textDecorationLine:'underline'}}>Invoice</Text>
+                            </View>
+                            <View style={{marginRight:20,marginLeft:20,borderRadius:10,height:50,width:'90%',backgroundColor:'#0BCCD8',borderWidth:1,borderColor:'#0BCCD8',justifyContent:'space-around',padding:10,flexDirection:'row',alignItems:'center'}}>
+                                <Text style={{fontSize:20,color:'#fff',fontWeight:'bold'}}>Pay Now</Text>
+                            </View>
                         </View>
-                        <View style={{height:30,width:100,backgroundColor:'#fff',borderWidth:1,borderColor:'red',borderRadius:20,justifyContent:'center',alignItems:'center'}}>
-                            <Text style={{fontSize:14,fontWeight:'bold',color:'red'}}>Overdue</Text>
+                    </View>
+                ))
+
+            }
+            </View>
+            
+        )
+    }
+    const Upcoming = () =>{
+        return(
+            <View>
+            {
+                data["data"]["upcomming"].map((item,index)=>(
+                    <View style={{flex:1,margin:15}} key={index}>
+                        <View style={{width:'100%',backgroundColor:'#fff',borderRadius:20,paddingBottom:20}}>
+                            <View style={styles.fittotext}>
+                                <View style={styles.feestypebox}>
+                                    <Text style={[styles.feestypetext,,{fontSize:14}]}>{item.fees_assigning_details.fee_master.name}</Text>
+                                </View>
+                                <View style={[styles.feestypebox,{borderColor:'#F19F00',backgroundColor:'#fff',borderWidth:1}]}>
+                                    <Text style={{fontSize:14,fontWeight:'bold',color:'#F19F00'}}>Upcoming</Text>
+                                </View>
+                                <View>
+                                    <Text style={[styles.feestypetext,,{fontSize:14}]}>₹ {item.amount}</Text>
+                                    <Text style={[styles.feestypetext,,{fontSize:10}]}>Second</Text>
+                                </View>
+                            </View>
+                            <View style={{padding:10}}>
+                                <Text style={[styles.feestypetext,{fontSize:18,opacity:0.5}]}>Tutuion Fee for SEM-1</Text>
+                                <Text style={[styles.feestypetext,,{fontSize:15}]}>Due: {item.date_left.split("(")[0]} <Text style={{color:'#F19F00'}}> ({item.date_left.split('(')[1]}</Text></Text>
+                            </View>
                         </View>
-                        <View>
-                            <Text style={{fontSize:14,fontWeight:'bold',color:'#1D2F59'}}>₹ 15,000</Text>
-                            <Text style={{fontSize:10,fontWeight:'bold',color:'#1D2F59'}}>Second</Text>
-                        </View>
                     </View>
-                    <View style={{padding:10}}>
-                        <Text style={{fontSize:18,fontWeight:'bold',color:'#1D2F59',opacity:0.5}}>Tutuion Fee for SEM-1</Text>
-                        <Text style={{fontSize:15,fontWeight:'bold',color:'#1D2F59'}}>Due: 12 Jun 2022 (3 days ago)</Text>
-                    </View>
-                    <View style={{height:50,width:'90%',backgroundColor:'#CDF5F7',margin:10,alignSelf:'center',borderRadius:10,flexDirection:'row',justifyContent:'space-between',alignItems:'center',padding:10}}>
-                        <Text style={{fontSize:12,fontWeight:'bold',color:'#1D2F59'}}>First Paid: 12 Jun 2022</Text>
-                        <Text style={{fontSize:12,fontWeight:'bold',color:'#00C3AC'}}>₹ 15,000</Text>
-                        <Text style={{fontSize:12,fontWeight:'bold',color:'#1D2F59',textDecorationLine:'underline'}}>Invoice</Text>
-                    </View>
-                    <View style={{marginRight:20,marginLeft:20,borderRadius:10,height:50,width:'90%',backgroundColor:'#0BCCD8',borderWidth:1,borderColor:'#0BCCD8',justifyContent:'space-around',padding:10,flexDirection:'row',alignItems:'center'}}>
-                        <Text style={{fontSize:20,color:'#fff',fontWeight:'bold'}}>Pay Now</Text>
-                    </View>
-                </View>
+                ))
+
+            }
             </View>
         )
     }
@@ -127,7 +198,7 @@ function Fees({ route,navigation }) {
                             />
                         
                         </View>
-                            <ScrollView horizontal={true} showsHorizontalScrollIndicator={false} style={{bottom:20}}>
+                            <ScrollView horizontal={true} showsHorizontalScrollIndicator={false} style={{bottom:20,left:20}}>
                                 <View style={styles.tabsContainer}>
                                 {tabs.map((tab) => (
                                     <TouchableOpacity
@@ -144,43 +215,56 @@ function Fees({ route,navigation }) {
                             </ScrollView>
                             <View style={{marginRight:20,marginLeft:20,borderRadius:20,height:50,width:'90%',backgroundColor:'#fff',borderWidth:1,borderColor:'#0BCCD8',justifyContent:'space-around',padding:10,top:15,flexDirection:'row',alignItems:'center'}}>
                                 <Text style={{fontSize:15,color:'#1D2F59',fontWeight:'bold'}}>Overall Pending Fee Due</Text>
-                                <Text style={{fontSize:15,color:'#329AD6',fontWeight:'bold'}}>₹ 25,000</Text>
-
+                                {
+                                    !loading?<Text style={{fontSize:15,color:'#329AD6',fontWeight:'bold'}}>₹ {data.data.upcomming_total}</Text>:
+                                    <Text style={{fontSize:15,color:'#329AD6',fontWeight:'bold'}}>:-</Text>
+                                }
                             </View>
                     </View>
                     
                 </View>
-                <ScrollView style={{flex:1}}>
-                    <View style={{padding:20}}>
-                         {/* Display content based on selected tab */}
-                         <View style={styles.contentContainer}>
-                         {tabs[selectedTab].id == 0?(
-                            <View>
-                                <All />
-                                </View>
-                         ):null}
-                         {tabs[selectedTab].id == 1?(
-                            <View>
-                                <Video />
-                                </View>
-                         ):null}
-                         {tabs[selectedTab].id == 2?(
-                            <View>
-                                <Images />
-                                </View>
-                         ):null}
-                         {tabs[selectedTab].id == 3?(
-                            <View>
-                                <Documents />
-                                </View>
-                         ):null}
-                         {tabs[selectedTab].id == 4?(
-                            <View>
-                                <Links />
-                                </View>
-                         ):null}
+                <View style={{height:15}}>
 
-                        </View>
+                </View>
+                
+                <ScrollView style={{flex:1}}>
+                    <View style={{paddingBottom:20}}>
+                        {
+                            !loading?(
+                                <View style={styles.contentContainer}>
+                                    {tabs[selectedTab].id == 0?(
+                                        <View>
+                                            <All />
+                                        </View>
+                                    ):null}
+                                    {tabs[selectedTab].id == 1?(
+                                        <View>
+                                            <Video />
+                                        </View>
+                                    ):null}
+                                    {/* {tabs[selectedTab].id == 2?(
+                                        <View>
+                                            <Images />
+                                        </View>
+                                    ):null} */}
+                                    {tabs[selectedTab].id == 2?(
+                                        <View>
+                                            <Upcoming />
+                                        </View>
+                                    ):null}
+                                </View>
+                            ):(
+                                <View>
+                                    {
+                                        data?(<View style={{justifyContent:'center',alignItems:'center',flex:1,marginTop:200}}>
+                                            <Text style={{fontSize:18,fontWeight:'bold',color:'red'}}>{data.msg}</Text>
+                                            </View>):<ActivityIndicator size="large" color="#0000ff" />
+                                    }                                        
+                                </View>
+                            )
+                        }
+                         {/* Display content based on selected tab */}
+                         
                     </View>
                 </ScrollView>
 
@@ -206,11 +290,13 @@ const styles = StyleSheet.create({
     },
     fittotext:{
         flexDirection:'row',
-        justifyContent:'space-between',
+        justifyContent:'space-evenly'
+        ,marginTop:20
     },
     headerPad:{
         height:320,
-        borderRadius:20,
+        borderBottomLeftRadius:20,
+        borderBottomRightRadius:20,
         backgroundColor:'#1D2F59',
     },
     headpadCss:{
@@ -257,4 +343,16 @@ const styles = StyleSheet.create({
       contentContainer: {
         flex: 1,
       },
+      feestypebox:{
+        height:30,
+        width:100,
+        backgroundColor:'#DCF2FF',
+        borderRadius:20,
+        justifyContent:'center',
+        alignItems:'center'
+      },
+      feestypetext:{
+        fontWeight:'bold',
+        color:'#1D2F59'
+      }
 })

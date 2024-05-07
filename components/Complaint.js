@@ -1,47 +1,83 @@
 import React, { useEffect, useState } from 'react';
-import { View, Button, Text, StyleSheet,  ScrollView,TouchableOpacity,ActivityIndicator,TextInput } from 'react-native';
+import { View, Alert, Text, StyleSheet,  ScrollView,TouchableOpacity,ActivityIndicator,TextInput } from 'react-native';
 import Icon from 'react-native-vector-icons/Entypo';
 import { ButtonGroup } from '@rneui/themed';
 import { API_COMPLIANT_UPLOAD } from '../APILIST/ApiList';
 import Modal from "react-native-modal";
 import { LinearGradient } from 'expo-linear-gradient';
 import IconANT from 'react-native-vector-icons/AntDesign';
+import * as DocumentPicker from 'expo-document-picker';
 
 function Complaint({ route,navigation }) {
     const ComplaintData = route['params']['HomeData']['data']
     const token = ComplaintData['token']
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(false);
-    const [selected,setSelected] = useState(0);
+    const [selected,setSelected] = useState(1);
     const [description,setDescription] = useState(null);
     const [isVisible, setIsVisible] = useState(false);
     const user_id = ComplaintData['user_detail']['user_id']
     const org_id = ComplaintData['org'][0]['id']
+    const clg_section_id =  ComplaintData['student_detail']['clg_section_id']
+    const academic_year_id=  ComplaintData['student_detail']['academic_year_id']
+    const [isDocumentPicking, setDocumentPicking] = useState(false);
+    const formData = new FormData();
+
+    const pickDocument = async () => {
+        try {
+            if (isDocumentPicking) {
+              console.log('Another document picking operation is already in progress.');
+              return;
+            }
+            setDocumentPicking(true);
+            const result = await DocumentPicker.getDocumentAsync({
+              type: 'application/pdf', // Specify the MIME type or use 'application/*' for any type
+            });
+            setLoading(true)
+            if (result.type === 'success') {
+              formData.append('file', {
+                  uri: result.uri,
+                  type: result.mimeType, // Adjust the MIME type accordingly
+                  name: result.name,
+              });
+            }
+        }catch (err) {
+            console.error('Error picking document:', err);
+            setLoading(false)
+          } finally {
+            setDocumentPicking(false);
+            setLoading(false)
+          }
+   
+    }
 
 
     const UploadCompliant = async () => {
-        const resp = await fetch(API_COMPLIANT_UPLOAD,{
-          method: 'PUT',
-          headers: {
-            Accept: 'application/json',
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            "user_id" : user_id,
-            "org_id" : org_id,
-            "academic_year_id" : 2,
-            "clg_section_id" : 9,
-            "type" : selected+1,
-            "description" : description 
-          }),
-    
-        })    
-        const response = await resp.json();
-        setData(response)
-        setIsVisible(true)
 
-      };
+        try {
+            formData.append('user_id',user_id)
+            formData.append('org_id',org_id)
+            formData.append('type',selected)
+            formData.append('description',description)
+            formData.append('clg_section_id',clg_section_id)
+    
+            const response = await fetch(API_COMPLIANT_UPLOAD, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                  'Content-Type': 'multipart/form-data',
+                  'Authorization': `Bearer ${token}`,
+                  // Add any additional headers as needed
+                },
+              });
+              if(response.status == 200){
+                Alert.alert('Submit Successfully');
+              }
+          } catch (err) {
+            console.log('Error picking document:', err);
+          }
+    };
+
     return (
         <View style={{flex:1}}>
             <Modal
@@ -110,20 +146,20 @@ function Complaint({ route,navigation }) {
                         placeholder="Enter Description"
                         placeholderTextColor="#003f5c"
                         multiline={true}  
-                        onChangeText={text=>setDescription(text)}                      
+                        onChangeText={(text)=>setDescription(text)}                      
                     />
 
                     </View>
                     <View style={{marginTop:20,height:160,width:'100%',borderWidth:1,borderColor:'#0BCCD8',shadowOpacity:2,alignItems:'center',justifyContent:'center',borderRadius:20}}>
                         <Text style={{fontSize:17,color:'#1D2F59',fontWeight:'bold',padding:10}}>Upload Attachment</Text>
-                        <View style={{height:30,width:100,backgroundColor:'#1D2F59',borderRadius:20,justifyContent:'center',alignItems:'center'}}>
+                        <TouchableOpacity style={{height:30,width:100,backgroundColor:'#1D2F59',borderRadius:20,justifyContent:'center',alignItems:'center'}} onPress={()=>pickDocument()}>
                             <Text style={{fontSize:15,color:'#fff',fontWeight:'bold'}}>Upload</Text>
-                        </View>
+                        </TouchableOpacity>
                     </View>
-                    <TouchableOpacity style={[styles.compliantbox,{backgroundColor:'#0BCCD8',width:'90%',margin:20,alignSelf:'center',borderRadius:20,}]} onPress={()=>UploadCompliant()}>
-                    <Text style={[styles.textcss,{fontSize:18,color:'#fff'}]}>Submit</Text>
-                    </TouchableOpacity>
-                        </View>
+                        <TouchableOpacity style={[styles.compliantbox,{backgroundColor:'#0BCCD8',width:'90%',margin:20,alignSelf:'center',borderRadius:20,}]} onPress={()=>UploadCompliant()}>
+                        <Text style={[styles.textcss,{fontSize:18,color:'#fff'}]}>Submit</Text>
+                        </TouchableOpacity>
+                    </View>
                     )
                     }
                     
@@ -163,7 +199,8 @@ function Complaint({ route,navigation }) {
     },
     headerPad:{
         height:150,
-        borderRadius:20,
+        borderBottomLeftRadius:20,
+        borderBottomRightRadius:20,
         backgroundColor:'#1D2F59',
     },
     headpadCss:{

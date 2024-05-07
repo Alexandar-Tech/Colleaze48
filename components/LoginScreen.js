@@ -6,7 +6,8 @@ import {
   Image,
   TouchableOpacity,
   TextInput,
-  ActivityIndicator
+  ActivityIndicator,
+  LogBox
 } from 'react-native';
 import { ButtonGroup } from '@rneui/themed';
 import Icon from 'react-native-vector-icons/AntDesign';
@@ -15,8 +16,12 @@ import { StatusBar } from 'expo-status-bar';
 import Modal from "react-native-modal";
 import { LinearGradient } from 'expo-linear-gradient';
 import { API_LOGIN } from '../APILIST/ApiList';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useFonts } from 'expo-font';
+
 
 const LoginHeader = () => {
+  LogBox.ignoreLogs(['new NativeEventEmitter']);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [errorMsg, setErrorMsg] = useState('');
   const navigation = useNavigation();
@@ -29,7 +34,16 @@ const LoginHeader = () => {
 
   const API_LOGIN_ENDPOINT = API_LOGIN
 
+  const [fontsLoaded] = useFonts({
+    'circular': require('../assets/fonts/circular-std-medium-500.ttf'),
+  });
+
+  if (!fontsLoaded) {
+    return null;
+  }
+
   const fetchData = async () => {
+    setLoading(true);
     const resp = await fetch(API_LOGIN_ENDPOINT,{
       method: 'POST',
       headers: {
@@ -45,14 +59,14 @@ const LoginHeader = () => {
 
     })    
     const response = await resp.json();
-    if (response.success == '1'){      
-      await new Promise(() => setTimeout(()=>{
-        navigation.navigate('MyDrawer',{
-          data:response.data
-        })
-      },10));
-      setLoading(false);
-      
+    if (response.success == '1'){
+      AsyncStorage.setItem('token',JSON.stringify(response))
+         
+      AsyncStorage.setItem('isLoggedIn', JSON.stringify(true));
+      navigation.navigate('MyDrawer',{
+        data:response.data
+      })
+      setLoading(false);      
     }else{
       setLoading(false);
       setIsVisible(true)
@@ -61,15 +75,9 @@ const LoginHeader = () => {
   };
 
   return (
+    
     <View style={{flex:1,opacity:bgopacity}}>
-      {
-        loading?(
-          <View style={styles.indicatorWrapper}>
-            <ActivityIndicator size="large" color="red" />
-            <Text style={styles.indicatorText}>Loading..</Text>
-          </View>
-        ):(
-          <View>
+
             <Modal
                   isVisible={isVisible}
                   style={styles.modelcontainer}
@@ -84,8 +92,11 @@ const LoginHeader = () => {
                           >
                             <TouchableOpacity style={{alignSelf:'flex-end',right:20}} onPress={()=>setIsVisible(false)}>
                               <Icon name="closecircle" color='red' size={25} />
-                            </TouchableOpacity>                        
-                              <Text style={{fontSize:16,fontWeight:'bold',color:'red',alignSelf:'center',marginTop:50}}>{errorMsg}</Text>
+                            </TouchableOpacity>
+                            {
+                              errorMsg?<Text style={{fontSize:16,fontWeight:'bold',color:'red',alignSelf:'center',marginTop:50}}>{errorMsg}</Text>:<Text  style={{fontSize:16,fontWeight:'bold',color:'red',alignSelf:'center',marginTop:50}}>Request Failed</Text>
+                            }                        
+                              
                     </LinearGradient> 
                   </View> 
               </Modal>
@@ -101,7 +112,7 @@ const LoginHeader = () => {
                     setSelectedIndex(value);
                   }}
                   containerStyle={{ borderRadius:10,height:50 }}
-                  textStyle={{fontSize:16,fontWeight:'bold'}}
+                  textStyle={{fontSize:16,fontWeight:'bold',fontFamily:'circular'}}
                   buttonStyle={{margin:3,borderBottomEndRadius:10,borderBottomStartRadius:10,borderTopStartRadius:10,borderTopEndRadius:10}}
                 />  
               </View>
@@ -130,21 +141,18 @@ const LoginHeader = () => {
                 />
               </View>
               <View style={styles.inputView1}>
-                <Text style={{height: 20,color: '#1D2F59',textAlign:'center',fontWeight:'bold'}}>You dont remember the password</Text>
+                <Text style={{height: 20,color: '#1D2F59',textAlign:'center',fontFamily:'circular'}}>You dont remember the password</Text>
                 <TouchableOpacity onPress={()=>navigation.navigate('MainForgetPassword')}>
                   <Text style={styles.forgot_button}>Forgot Password?</Text>
                 </TouchableOpacity>
               </View>
               <View style={{ left: 30 }}>
+                
                 <TouchableOpacity style={styles.loginBtn}
                 onPress={()=>fetchData()}>
-                  <Text style={styles.loginText}>LOGIN</Text>
+                  {loading?<ActivityIndicator size={'large'} color={'red'}/>:<Text style={styles.loginText}>LOGIN</Text>}
                 </TouchableOpacity>
               </View>
-        </View>
-         )
-        }
-
     </View>
   );
 };
@@ -186,6 +194,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: '#ffff',
     right: 120,
+    fontFamily:'circular'
   },
   logo: {
     top: 20,
@@ -209,6 +218,7 @@ const styles = StyleSheet.create({
     paddingRight: 20,
     marginLeft: 60,
     bottom: 10,
+    fontFamily:'circular'
   },
   inputView1: {
     marginTop:50,
@@ -221,7 +231,7 @@ const styles = StyleSheet.create({
     color: '#0359FA',
     textDecorationLine: 'underline',
     textAlign:'center',
-    fontWeight:'bold'
+    fontFamily:'circular'
   },
   loginBtn: {
     width: '80%',
@@ -233,9 +243,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#0BCCD8',
   },
   loginText:{
-    fontSize:17,
-    fontWeight:'bold',
-    color:'#fff'
+    fontSize:17,    
+    color:'#fff',
+    fontFamily:'circular'
   },
   modelcontainer:{
     margin:20,
@@ -250,10 +260,10 @@ const styles = StyleSheet.create({
     borderColor:'#0BCCD8',
   },
   indicatorWrapper: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    marginTop:200,
-    flex:1             
+    // ...StyleSheet.absoluteFillObject,
+    // backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    // marginTop:200,
+    // flex:1             
   },
   indicatorText: {
     fontSize: 18,

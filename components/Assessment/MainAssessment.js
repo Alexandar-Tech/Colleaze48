@@ -10,7 +10,9 @@ function MainAssessment({ route,navigation }) {
     const MainAssessmentData = route['params']['LoginData']['data']
     const token = MainAssessmentData['token']
     const org_id = MainAssessmentData['org'][0]['id']
-    const org_type = MainAssessmentData['org'][0]['type']    
+    const org_type = MainAssessmentData['org'][0]['type']
+    const user_id = MainAssessmentData['user_detail']['user_id']  
+    const academic_year_id=  MainAssessmentData['student_detail']['academic_year_id']  
 
     const [selectedTab, setSelectedTab] = useState(0);
     const [selectedTerm, setSelectedTerm] = useState(0);
@@ -53,9 +55,9 @@ function MainAssessment({ route,navigation }) {
 
     useEffect(() => { 
         axios.post(API_ASSESSMENT,{
-            "user_id" : 153,
-            "org_id": 151,
-            "academic_year" : "2023-2024"  
+            "user_id" : user_id,
+            "org_id": org_id,
+            "academic_year_id" : academic_year_id
         },{
           headers: {
               'Content-Type': 'application/json',
@@ -71,9 +73,7 @@ function MainAssessment({ route,navigation }) {
           });
     }, []);
 
-
-
-    const terms = [
+   const terms = [
         {id:0,title:'Term 1'},
         {id:1,title:'Term 2'},
         {id:2,title:'Term 3'}
@@ -82,7 +82,7 @@ function MainAssessment({ route,navigation }) {
     const All = () =>{
         return(
             <View>
-                <Text style={{fontSize:20,fontWeight:'bold',padding:10}}>Academic</Text>
+                <Text style={{fontSize:16,margin:10}}>Academic</Text>
                 {
                     org_type!='college'?(
                         <View>
@@ -144,47 +144,55 @@ function MainAssessment({ route,navigation }) {
                     (
                         <View>
                             <ButtonGroup
-                                buttons={['Intenal Task', 'University Exams']}
+                                buttons={['Internal Assessment', 'University Assessment']}
                                 selectedIndex={selectedIndexCollege}
                                 onPress={(value) => {
                                 setSelectedIndexCollege(value);
                                 }}
-                                containerStyle={{ borderRadius:10,height:50,width:'100%',alignSelf:'center' }}
-                                textStyle={{fontSize:12,fontWeight:'bold'}}
-                                buttonStyle={{margin:3,borderBottomEndRadius:10,borderBottomStartRadius:10,borderTopStartRadius:10,borderTopEndRadius:10}}
+                                containerStyle={{ borderRadius:10,height:50,width:'100%',alignSelf:'center',backgroundColor:'#CEF5F7',borderColor:'#CEF5F7' }}
+                                textStyle={{fontSize:13,fontWeight:'bold'}}
+                                buttonStyle={{}}
                             />
-                            <View style={styles.boxpad}>
+                            <View style={[styles.boxpad,{marginTop:10}]}>
                                 {
                                     !selectedIndexCollege?(
-                                        data?(                                            
+                                        data['data']['student_mark']?(                                            
                                         <View>
                                             <Text style={{padding:10,fontSize:16,fontWeight:'bold',color:'#329AD6'}}>Cycle Test</Text>
                                             <View style={styles.insideboxpad}>
-                                                <View style={{flex:1,width:'95%',backgroundColor:'#1D2F59',borderRadius:10,alignSelf:'center',flexDirection:'row',justifyContent:'space-between',alignItems:'center',margin:10}}>
-                                                    <Text style={[styles.headerTitle,{width:150}]}>Sub</Text>
-                                                    {
-                                                        data['data']['student_mark'].map((item,index)=>(
-                                                            <View>
-                                                                <Text style={[styles.headerTitle,{width:80}]}>{item.examType}</Text>                                                                
-                                                            </View>                                                                                                                  
-                                                        ))
-                                                    } 
+                                                    <View style={{flex:1,width:'100%',backgroundColor:'#1D2F59',borderRadius:10,alignSelf:'center',flexDirection:'row',justifyContent:'space-between',alignItems:'center',margin:10}}>
+                                                        <Text style={[styles.headerTitle,{width:'50%'}]}>Sub</Text>
+                                                        {
+                                                            data['data']['student_mark'].map((item,index)=>(
+                                                                <View key={index} style={{width:"25%"}}>
+                                                                    <Text style={[styles.headerTitle,{textAlign:'center'}]}>{item.examType}</Text>                                                                    
+                                                                </View>                                                                                                                  
+                                                            ))
+                                                        }                                                  
+                                                    </View>
+                                                 <View style={{flexDirection:'row',justifyContent:'space-between'}}>
+                                                {
+                                                            data['data']['student_mark'].map((item,index)=>(
+                                                                <View key={index}>                                                                     
+                                                                    {
+                                                                        item.marks.map((itemdata,indexdata)=>(                                                                            
+                                                                            <View style={{flexDirection:'row',justifyContent:'space-between',width:'100%'}} key={indexdata}>
+                                                                                <Text style={[styles.letterfont,{width:'55%'}]}>{itemdata.college_subject.name}</Text>
+                                                                                <Text style={[styles.letterfont,{width:'25%'}]}>{itemdata.marks}</Text>
+                                                                                <Text style={[styles.letterfont,{width:'28%'}]}>{data.data.student_mark[0].marks[indexdata].marks}</Text>
+                                                                            </View>
+                                                                         ))
+                                                                    } 
+                                                                </View>                                                                                                                  
+                                                            ))
+                                                        } 
                                                 </View>
-                                                <View>
-
-                                                    {
-                                                        data['data']['student_mark'][0]['marks'].map((item,index)=>(
-                                                            <View style={{flexDirection:'row',justifyContent:'space-between'}}>
-                                                                <Text style={[styles.letterfont,{width:150}]}>{item.college_subject.name}</Text>
-                                                                <Text style={[styles.letterfont,{marginRight:10}]}>{item.marks}</Text>
-                                                                <Text style={[styles.letterfont,{marginRight:30}]}>{data['data']['student_mark'][1]['marks'][index]['marks']}</Text>
-                                                            </View>                                                                                                                 
-                                                        ))
-                                                    }
-                                                </View>
-                                                
                                             </View>
-                                        </View>):null
+                                        </View>):(
+                                            <View style={[styles.insideboxpad,{height:100,justifyContent:'center',alignItems:'center'}]}>
+                                                <Text style={styles.fontcss}>Exams Shows Empty</Text>
+                                            </View>
+                                        )
                                     ):(
                                         <View>
                                             <Text style={{padding:10,fontSize:16,fontWeight:'bold',color:'#329AD6',marginLeft:10}}>Exam Marks</Text>
@@ -199,7 +207,7 @@ function MainAssessment({ route,navigation }) {
                                                 </View>
                                                 <View style={{flexDirection:'row',justifyContent:'space-between'}}>
                                                     <Text style={[styles.letterfont,{marginLeft:10}]}>Hindi</Text>
-                                                    <Text style={[styles.letterfont,{marginRight:30}]}>96</Text>
+                                                    <Text style={[styles.letterfont,{marginRight:30,color:'#EA5D5D'}]}>25</Text>
                                                     
                                                 </View>
                                                 <View style={{flexDirection:'row',justifyContent:'space-between'}}>
@@ -219,7 +227,11 @@ function MainAssessment({ route,navigation }) {
                                                 </View>
                                                 <View style={{flexDirection:'row',justifyContent:'space-between'}}>
                                                     <Text style={[styles.letterfont,{marginLeft:10}]}>Sanskrit</Text>
-                                                    <Text style={[styles.letterfont,{marginRight:30}]}>96</Text>                                                    
+                                                    <Text style={[styles.letterfont,{marginRight:30,color:'#EA5D5D'}]}>32</Text>                                                    
+                                                </View>
+                                                <View style={{width:'90%',marginBottom:20,alignSelf:'center',borderRadius:20,backgroundColor:'#FFF0F0',alignItems:'center'}}>
+                                                    <Text style={[styles.letterfont,{fontSize:15,color:'#EA5D5D'}]}>GPA - 4.21</Text>
+                                                                                                      
                                                 </View>
                                             </View>
                                         </View>
@@ -230,28 +242,16 @@ function MainAssessment({ route,navigation }) {
                     </View>
                     )
                 }               
-                <Text style={{fontSize:20,fontWeight:'bold',padding:10}}>Disciplinary Proceedings</Text>
-                <View style={[styles.insideboxpad,{height:120,width:'100%'}]}>
-                    {
-                        <View>
-                            {
-                                data.data.student_decipline?(
-                                    <View>
-                                        {
-                                            data.data.student_decipline.map((item,index)=>(
-                                                <View>
-                                                    <Text style={styles.fontcss}>{item.disciplinary_proceeding}</Text>
-                                                </View>
-                                            ))
-        
-                                        }                                        
-                                </View>
-                                ):null
+                <Text style={{fontSize:16,margin:5,top:8}}>Disciplinary Proceedings</Text>
+                <View style={[styles.insideboxpad,{minHeight:120,width:'100%'}]}>
 
-                            }
-                        
-                        </View>
-                        
+                    {
+                        data?(
+                        data.data.student_decipline.map((item,index)=>(
+                            <View key={index}>
+                                <Text style={[styles.fontcss,{lineHeight: 20}]}>{item.disciplinary_proceeding}</Text>
+                            </View>
+                        ))):null
                     }
                     
                 </View>
@@ -261,35 +261,37 @@ function MainAssessment({ route,navigation }) {
                     onPress={(value) => {
                     setSelectedIndex(value);
                     }}
-                    containerStyle={{ borderRadius:10,height:50,width:'100%',alignSelf:'center' }}
+                    containerStyle={{ borderRadius:10,height:50,width:'100%',alignSelf:'center',top:10 }}
                     textStyle={{fontSize:12,fontWeight:'bold'}}
-                    buttonStyle={{margin:3,borderBottomEndRadius:10,borderBottomStartRadius:10,borderTopStartRadius:10,borderTopEndRadius:10}}
+                    buttonStyle={{borderBottomEndRadius:10,borderBottomStartRadius:10,borderTopStartRadius:10,borderTopEndRadius:10}}
                 />
                 
                     {
                         !selectedIndex?(
-                            <View style={[styles.insideboxpad,{height:120,width:'100%'}]}>
+                            <View style={[styles.insideboxpad,{minHeight:120,width:'100%',top:10}]}>
                                 {
-                                    data.data.student_sports_achievements.map((item,index)=>(
-                                        <Text style={styles.fontcss}>{item.achievements}</Text>
-                                    ))
+                                    data?(
+                                    data.data['student_sports_achievements'].map((item,index)=>(
+                                        <Text style={[styles.fontcss,{lineHeight: 20}]} key={index}>{item.achievements}</Text>
+                                    ))):null
                                 }
                             </View>
                         ):(
-                            <View style={[styles.insideboxpad,{height:120,width:'100%'}]}>
+                            <View style={[styles.insideboxpad,{minHeight:120,width:'100%'}]}>
                                {
-                                    data.data.student_extra_curricular_achievements.map((item,index)=>(
-                                        <Text style={styles.fontcss}>{item.achievements}</Text>
-                                    ))
+                                data?(
+                                    data.data['student_extra_curricular_achievements'].map((item,index)=>(
+                                        <Text style={styles.fontcss} key={index}>{item.achievements}</Text>
+                                    ))):null
                                 }
                             </View>
                         )                        
 
                     }
 
-                <Text style={{fontSize:20,fontWeight:'bold',padding:10}}>Remarks by Teacher</Text>
-                <View style={[styles.insideboxpad,{height:120,width:'100%',backgroundColor:'#CEF5F7',height:150}]}>
-                    <Text style={styles.fontcss}>“Thanks for a fantastic year at school this year! It’s been awesome to see every one grow and develop so much and our community has come together so wonderfully with all of our exciting new projects and activities. Hope you all have a fantastic summer - and looking forward to seeing back in the fall.”</Text>
+                <Text style={{fontSize:16,margin:5,top:10}}>Remarks by Teacher</Text>
+                <View style={[styles.insideboxpad,{width:'100%',backgroundColor:'#CEF5F7',minHeight:120}]}>
+                    <Text style={[styles.fontcss,{lineHeight: 20}]}>“Thanks for a fantastic year at school this year! It’s been awesome to see every one grow and develop so much and our community has come together so wonderfully with all of our exciting new projects and activities. Hope you all have a fantastic summer - and looking forward to seeing back in the fall.”</Text>
                     <Text style={{textAlign:'right',fontWeight:'bold',color:'#329AD6'}}>- Denui Tenota</Text>
                 </View>
 
@@ -322,7 +324,7 @@ function MainAssessment({ route,navigation }) {
                             </View>
                         </TouchableOpacity>
                         <View>
-                            <Text style={styles.headerText}>Student Report</Text>
+                            <Text style={styles.headerText}>Assessment</Text>
                         </View>
                         <View></View>          
                     </View>
@@ -428,7 +430,8 @@ const styles = StyleSheet.create({
     },
     headerPad:{
         height:200,
-        borderRadius:20,
+        borderBottomLeftRadius:20,
+        borderBottomRightRadius:20,
         backgroundColor:'#1D2F59',
     },
     headpadCss:{
@@ -489,7 +492,6 @@ const styles = StyleSheet.create({
         color:'#1D2F59',
       },
       boxpad:{
-        flex:1,
         width:'100%',
         alignSelf:'center',
         backgroundColor:'#fff',
@@ -498,13 +500,12 @@ const styles = StyleSheet.create({
         borderColor:'#0BCCD8'
       },
       insideboxpad:{
-        flex:1,
         width:'95%',
         alignSelf:'center',
         backgroundColor:'#fff',
         borderRadius:10,
-        borderWidth:1,
-        borderColor:'#0BCCD8',
-        margin:10
+        marginLeft:20,
+        marginRight:20,
+        marginTop:10
       },
 })

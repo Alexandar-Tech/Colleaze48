@@ -31,11 +31,11 @@ function Gallery({ route,navigation }) {
         });
     }, []);
 
-    const DropdownComponent = (props) => {
+    const DropdownComponent = (valueData) => {
         
         const [isFocus, setIsFocus] = useState(false);
-        const name = props.name
-        const dropData = props.dropdownData['data']
+        const name = valueData.name
+        const dropData = valueData.dropdownData['data']
         let label_name = "academic_year"
       
         return (

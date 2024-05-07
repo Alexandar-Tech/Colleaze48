@@ -40,6 +40,10 @@ import MainScholarship from '../Scholarship/MainScholarship';
 import ScholarshipHomePage from '../Scholarship/SchoalrshipHomepage';
 import AssignmentFilter from '../Assignment/AssignmentFilter';
 import { Activites } from '../Activities/Activities';
+import Notification from './Notification';
+import Concerns from '../Concerns';
+import Feedback from '../Feedback';
+import FeedBackView from '../FeedBackView';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -79,6 +83,10 @@ const HomeStack = ({route}) => {
         <Stack.Screen name="ScholarshipHomePage" component={ScholarshipHomePage} options={{headerShown:false}} initialParams={{HomeData:route['params']['HomeData']}}/> 
         <Stack.Screen name="AssignmentFilter" component={AssignmentFilter} options={{headerShown:false}} initialParams={{HomeData:route['params']['HomeData']}}/> 
         <Stack.Screen name="Activites" component={Activites} options={{headerShown:false}} initialParams={{HomeData:route['params']['HomeData']}}/> 
+        <Stack.Screen name="Notification" component={Notification} options={{headerShown:false}} initialParams={{HomeData:route['params']['HomeData']}}/> 
+        <Stack.Screen name="Concerns" component={Concerns} options={{headerShown:false}} initialParams={{HomeData:route['params']['HomeData']}}/> 
+        <Stack.Screen name="Feedback" component={Feedback} options={{headerShown:false}} initialParams={{HomeData:route['params']['HomeData']}}/>
+        <Stack.Screen name="FeedBackView" component={FeedBackView} options={{headerShown:false}} initialParams={{HomeData:route['params']['HomeData']}}/> 
       </Stack.Navigator>
     );
   };
@@ -92,6 +100,11 @@ const BottomTabStack = ({route,navigation}) => {
         tabBarStyle:{
             backgroundColor:'#1D2F59',
         },
+        tabBarLabelStyle:{
+          fontWeight:'bold',
+          fontSize:16
+        },
+        
         tabBarLabel: ({ focused }) => {
             let label;
   

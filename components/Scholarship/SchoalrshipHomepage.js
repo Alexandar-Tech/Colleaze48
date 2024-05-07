@@ -1,17 +1,17 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text,TouchableOpacity,StyleSheet,ActivityIndicator,ScrollView,TextInput,Switch } from 'react-native';
+import { View, Text,TouchableOpacity,StyleSheet,ActivityIndicator,ScrollView,TextInput,Alert,Button } from 'react-native';
 import Icon from 'react-native-vector-icons/Entypo';
 import IconFA from 'react-native-vector-icons/FontAwesome';
 import { LinearGradient } from 'expo-linear-gradient';
 import axios from 'axios';
-import { API_VIEWSTUDENT,API_FIELD } from '../../APILIST/ApiList';
+import { API_VIEWSTUDENT,API_FIELD,API_GET_STUDENT_SCHOLARSHIP,API_GET_IFSCCODE,API_GET_UPDATE_SCHLOARSHIP } from '../../APILIST/ApiList';
+import DateTimePicker from '@react-native-community/datetimepicker';
+
+
 
 type AccordionItemPros = PropsWithChildren<{
   title: string;
 }>;
-
-
-
 
 function AccordionItem({ children, title }: AccordionItemPros): JSX.Element {
     const [ expanded, setExpanded ] = useState(false);
@@ -40,13 +40,54 @@ function AccordionItem({ children, title }: AccordionItemPros): JSX.Element {
   }
 
 function ScholarshipHomePage({ route,navigation }) {
+   
+  
+  const DatePickerExample = () => {
+    const [chosenDate, setChosenDate] = useState(new Date());
+    const [showDatePicker, setShowDatePicker] = useState(false);
+  
+    const handleDateChange = (event, selectedDate) => {
+      setShowDatePicker(false);
+  
+      if (selectedDate) {
+        setChosenDate(selectedDate);
+      }
+    };
+  
+    const showDatepicker = () => {
+      setShowDatePicker(true);
+    };
+  
+    return (
+      <TouchableOpacity onPress={showDatepicker} style={styles.textBox}>
+        <Text style={{ fontSize: 13,fontWeight:'bold',color:'#1D2F59' }}>
+          {chosenDate.toDateString()}
+        </Text>
+  
+        {showDatePicker && (
+          <DateTimePicker
+            testID="dateTimePicker"
+            value={chosenDate}
+            mode="date"
+            is24Hour={true}
+            display="default"
+            onChange={handleDateChange}
+          />
+        )}
+      </TouchableOpacity>
+    );
+  };
+
+  
+
     const ScholarData = route['params']['HomeData']['data']
     const token = ScholarData['token']
     const org_id = ScholarData['org'][0]['id']
     const schType =route['params']['schid']
+    const [inputValues, setInputValues] = useState([]);
 
     const API_URL = API_FIELD
-    const API_TOKEN = API_VIEWSTUDENT
+    const API_TOKEN = API_GET_STUDENT_SCHOLARSHIP
 
     const [data, setData] = useState(null);
     const [dataValue, setDataValue] = useState(null);
@@ -56,13 +97,67 @@ function ScholarshipHomePage({ route,navigation }) {
     const [isDisabled, setIsDisabled] = useState(false);
     const [isOrphan, setIsOrphan] = useState(false);
     const [isAddress, setIsAddress] = useState(false);
-    const [isRenewal, setIsRenewal] = useState(false);    
+    const [isRenewal, setIsRenewal] = useState(false);  
+    const [isLatral, setIsLatral] = useState(false);
+    const [isGovernment, setIsGovernment] = useState(false); 
+    const user_id = ScholarData['user_detail']['user_id'] 
 
-    const [date, setDate] = useState(new Date(1598051730000));
-    const [mode, setMode] = useState('date');
-    const [show, setShow] = useState(false);
-    let label_data = ''
+    const [isIFSC,setIsIFSC] = useState(null);
+    const [isIFSCDATA,setIsIFSCDATA] = useState(null);
 
+    const handleInputChange = (key, value) => {
+      setInputValues((prevData) => {
+          const newData = { ...prevData };      
+          newData[key] = value;      
+          return newData;
+        });
+    };
+
+    const UploadStudent = async () => {
+      if(inputValues.length == 0){
+        Alert.alert("Update Not Found")
+      }
+      inputValues['user_id'] = user_id
+      inputValues['scholarship_type_id'] = schType
+      inputValues['org_id'] = org_id
+      inputValues['same_as_permanent_address'] = true
+      inputValues['Community certificate Number'] = '2992929399303'
+      inputValues['Date of issue of Community certificate'] = '2020-8-27'
+      inputValues['Income certificate Number'] = '18839399393'
+      inputValues['Date of issue of Income certificate'] = '2020-8-27'
+      const resp = await fetch(API_GET_UPDATE_SCHLOARSHIP,{
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(inputValues)    
+      })    
+      const response = await resp.json();
+      if(response.success == 1)
+      {
+       Alert.alert(response.msg)
+      }
+    };
+
+    useEffect(() => {
+      axios.post(API_GET_IFSCCODE,{
+        "ifsc_code" : isIFSC
+      },
+      {
+      headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+          },
+      })
+      .then(response => {
+        setIsIFSCDATA(response.data);
+      })
+      .catch(error => {
+        setIsIFSCDATA(null);
+      });
+      }, [isIFSC]);
     
     const toggleSwitchFirstGradute = () => {
       setIsFirstGradute((previousState) => !previousState);
@@ -73,47 +168,18 @@ function ScholarshipHomePage({ route,navigation }) {
     const toggleSwitchOrphan = () => {
       setIsOrphan((previousState) => !previousState);
     };
+    const toggleSwitchLateral = () => {
+      setIsLatral((previousState) => !previousState);
+    };
+    const toggleSwitchGovernment = () => {
+      setIsGovernment((previousState) => !previousState);
+    };
     const toggleSwitchAddress = () => {
       setIsAddress((previousState) => !previousState);
     };
     const toggleSwitchRenewal = () => {
       setIsRenewal((previousState) => !previousState);
-    };
-
-    const onChange = (event, selectedDate) => {
-        const currentDate = selectedDate;
-        setShow(false);
-        setDate(currentDate);
-      };
-    
-      const showMode = (currentMode) => {
-        setShow(true);
-        setMode(currentMode);
-      };
-    
-      const showDatepicker = () => {
-        showMode('date');
-      };
-    
-      const showTimepicker = () => {
-        showMode('time');
-      };
-
-    const showDatePicker = () => {
-        setDatePickerVisibility(true);
-      };
-    
-      const hideDatePicker = () => {
-        setDatePickerVisibility(false);
-      };
-
-      const handleConfirm = (date) => {
-        // Do something with the selected date
-        setSelectedDate(date.toISOString()); // or format the date as per your requirements
-        hideDatePicker();
-      };
-
-    
+    };    
 
     useEffect(() => {
         axios.post(API_URL,{
@@ -131,14 +197,17 @@ function ScholarshipHomePage({ route,navigation }) {
             setLoading(false)
         })
         .catch(error => {
-            setData(null);
+          Alert.alert(error.response.data.msg, '', [
+            {text: 'OK', onPress: () => navigation.navigate('MainScholarship')},
+          ]);
+          setData(null);        
         });
     }, []);
 
     useEffect(() => {
         if(data){
             axios.post(API_TOKEN,{
-                "scholarship_id":1
+              "user_id" : user_id
             },
             {
             headers: {
@@ -155,11 +224,6 @@ function ScholarshipHomePage({ route,navigation }) {
             });
         }        
     }, [data]);
-
-
-       
-
-
     return(
         <>
         <LinearGradient
@@ -194,14 +258,11 @@ function ScholarshipHomePage({ route,navigation }) {
                                     <View>
                                       {
                                         
-                                        data['data'].map((item,index)=>(
-                                            
+                                        data['data'].map((item,index)=>(                                            
                                             <View key={item.id}>
                                                 <AccordionItem title={item.title} key={item.id}>
-                                                    {
-                                                        
-                                                        item['label'].map((label,lbindex) =>(
-                                                            
+                                                    {                                                        
+                                                        item['label'].map((label,lbindex) =>(                                                            
                                                             dataValue?(
                                                             <View key={lbindex}>
                                                                 <View style={{justifyContent:'space-between',flexDirection:'row'}}>
@@ -216,6 +277,18 @@ function ScholarshipHomePage({ route,navigation }) {
                                                                     label[1]=='radio' && label[0]=='Are You an Orphan?' ?(
                                                                     <TouchableOpacity onPress={toggleSwitchOrphan} style={{top:20}}>
                                                                       <IconFA name={isOrphan?'toggle-on':'toggle-off'} size={25} color={!isOrphan?'#1D2F59':'#0BCCD8'}/>
+                                                                    </TouchableOpacity>):null
+                                                                  }
+                                                                  {
+                                                                    label[1]=='radio' && label[0]=='Is Lateral Entry?' ?(
+                                                                    <TouchableOpacity onPress={toggleSwitchLateral} style={{top:20}}>
+                                                                      <IconFA name={isLatral?'toggle-on':'toggle-off'} size={25} color={!isLatral?'#1D2F59':'#0BCCD8'}/>
+                                                                    </TouchableOpacity>):null
+                                                                  }
+                                                                  {
+                                                                    label[1]=='radio' && label[0]=='Goverment Quota' ?(
+                                                                    <TouchableOpacity onPress={toggleSwitchGovernment} style={{top:20}}>
+                                                                      <IconFA name={isGovernment?'toggle-on':'toggle-off'} size={25} color={!isGovernment?'#1D2F59':'#0BCCD8'}/>
                                                                     </TouchableOpacity>):null
                                                                   }
                                                                   {
@@ -242,58 +315,85 @@ function ScholarshipHomePage({ route,navigation }) {
                                                                 {
                                                                     label[1]=='text'?(
                                                                         <View style={styles.textBox}>
+                                                                          {/* {
+                                                                              label[0]=='Student Name'? <Text>{dataValue['data']['student']['user_detail']['name']}</Text>:null 
+                                                                            } */}
                                                                             {
-                                                                              label[0]=='Student Name'? <Text>{dataValue['data']['user']['user_detail']['name']}</Text>:null 
+                                                                              label[0]=='Student Name'? <Text>{dataValue['data']['student']['user_detail']['name']}</Text>:null 
                                                                             }
                                                                             {
-                                                                              label[0]=='Gender'? <Text>{dataValue['data']['user']['user_detail']['gender']}</Text>:null 
+                                                                              label[0]=='Gender'? <Text>{dataValue['data']['student']['user_detail']['gender']}</Text>:null 
                                                                             }
                                                                             {
-                                                                              label[0]=='Mail ID'? <Text>{dataValue['data']['user']['email']}</Text>:null 
+                                                                              label[0]=='Mail ID'? <Text>{dataValue['data']['student']['email']}</Text>:null 
                                                                             }
                                                                             {
-                                                                              label[0]=='Community'? <Text>{dataValue['data']['user']['user_detail']['community']['name']}</Text>:null 
+                                                                              label[0]=='Community'? <Text>{dataValue['data']['student']['user_detail']['community']['name']}</Text>:null 
                                                                             } 
                                                                             {
-                                                                              label[0]=='Religion'? <Text>{dataValue['data']['user']['user_detail']['religion']['name']}</Text>:null 
+                                                                              label[0]=='Religion'? <Text>{dataValue['data']['student']['user_detail']['religion']['name']}</Text>:null 
                                                                             }
                                                                             {
-                                                                              label[0]=='Father/Guardian Name'? <Text>{dataValue['data']['user']['user_detail']['father_name']}</Text>:null 
+                                                                              label[0]=='Father/Guardian Name'? <Text>{dataValue['data']['student']['user_detail']['father_name']}</Text>:null 
                                                                             }
                                                                             {
-                                                                              label[0]=="Father's Occupation"? <Text>{dataValue['data']['user']['user_detail']['father_occupation']}</Text>:null 
+                                                                              label[0]=="Father's Occupation"? <Text>{dataValue['data']['student']['user_detail']['father_occupation']}</Text>:null 
                                                                             }
                                                                             {
-                                                                              label[0]=="Mother's Name"? <Text>{dataValue['data']['user']['user_detail']['mother_name']}</Text>:null 
+                                                                              label[0]=="Mother's Name"? <Text>{dataValue['data']['student']['user_detail']['mother_name']}</Text>:null 
                                                                             }
                                                                             {
-                                                                              label[0]=="Mother's Occupation"? <Text>{dataValue['data']['user']['user_detail']['mother_occupation']}</Text>:null 
+                                                                              label[0]=="Mother's Occupation"? <Text>{dataValue['data']['student']['user_detail']['mother_occupation']}</Text>:null 
                                                                             }
                                                                             {
-                                                                              label[0]=="Address with Door Number"? <Text>{dataValue['data']['user_address_details']['address']}</Text>:null 
+                                                                              label[0]=="Address with Door Number"? <Text>{dataValue['data']['student']['user_detail']['address']}</Text>:null 
                                                                             }
                                                                             {
-                                                                              label[0]=="Country"? <Text>{dataValue['data']['user_address_details']['country']['name']}</Text>:null 
+                                                                              label[0]=="Country"? <Text>{dataValue['data']['student']['country']['name']}</Text>:null 
                                                                             } 
                                                                             {
-                                                                              label[0]=="State"? <Text>{dataValue['data']['user_address_details']['state']['name']}</Text>:null 
+                                                                              label[0]=="State"? <Text>{dataValue['data']['student']['state']['name']}</Text>:null 
                                                                             }
                                                                             {
-                                                                              label[0]=="City"? <Text>{dataValue['data']['user_address_details']['city']['name']}</Text>:null 
+                                                                              label[0]=="City"? <Text>{dataValue['data']['student']['city']['name']}</Text>:null 
                                                                             } 
                                                                             {
-                                                                              label[0]=="Pincode"? <Text>{dataValue['data']['user_address_details']['pincode']}</Text>:null 
+                                                                              label[0]=="Pincode"? <Text>{dataValue['data']['student']['pincode']}</Text>:null 
                                                                             }
                                                                             {
-                                                                              label[0]=="District"? <Text>{dataValue['data']['user_address_details']['city']['name']}</Text>:null 
+                                                                              label[0]=="District"? <Text>{dataValue['data']['student']['city']['name']}</Text>:null 
                                                                             }
-                                                                            
                                                                             {
                                                                               label[0]=="Institution Name"? <Text>{dataValue['data']['organisation']['name']}</Text>:null 
                                                                             }
+                                                                            
                                                                             {
-                                                                              label[0]=="Academic Year"? <Text>{dataValue['data']['organisation']['email']}</Text>:null 
-                                                                            }    
+                                                                              label[0]=="Present Course Name"? <Text>{dataValue['data']['student']['student_detail']['year_and_section']['department']['name']}</Text>:null 
+                                                                            }
+                                                                            {
+                                                                              label[0]=="Present Course"? <Text>{dataValue['data']['student']['student_detail']['year_and_section']['department']['name']}</Text>:null 
+                                                                            }
+                                                                            {
+                                                                              label[0]=="Present Course Year"? <Text>{dataValue['data']['student']['student_detail']['year_and_section']['year']}</Text>:null 
+                                                                            }
+                                                                            {
+                                                                              label[0]=="Academic Year"? <Text>{dataValue['data']['student']['student_detail']['academic_year']['academic_year'].split(' ')[2]}</Text>:null 
+                                                                            }
+                                                                            {
+                                                                              isIFSCDATA && label[0]=="Bank Name"?(
+                                                                                 <Text>{isIFSCDATA.data.bank}</Text>
+                                                                              ):null
+                                                                            }
+                                                                            {
+                                                                              isIFSCDATA && label[0]=="Branch Name"?(
+                                                                                 <Text>{isIFSCDATA.data.branch}</Text>
+                                                                              ):null
+                                                                            } 
+                                                                            {
+                                                                              isIFSCDATA && label[0]=="MICR Code"?(
+                                                                                 <Text>{isIFSCDATA.data.micr}</Text>
+                                                                              ):null
+                                                                            }     
                                                                             
                                                                         </View>
                                                                     ):null
@@ -305,13 +405,23 @@ function ScholarshipHomePage({ route,navigation }) {
                                                                             {
                                                                               !isAddress?(
                                                                                 <View style={styles.inputView}>
+                                                                                  {
+                                                                                  label[0]=="Student name(As in Aadhar)"? (
+                                                                                    <TextInput
+                                                                                      style={styles.TextInput}
+                                                                                      placeholder={label[0]}
+                                                                                      placeholderTextColor="#003f5c"
+                                                                                      onChangeText={(text)=>handleInputChange(label[0],text)}
+                                                                                  />
+                                                                                  ):null
+                                                                                }
                                                                                 {
                                                                                   label[0]=="Country"? (
                                                                                     <TextInput
                                                                                       style={styles.TextInput}
                                                                                       placeholder={label[0]}
                                                                                       placeholderTextColor="#003f5c"
-                                                                                      // onChangeText={text=>setEmail(text)}                                                                                
+                                                                                      onChangeText={(text)=>handleInputChange(label[0],text)}
                                                                                   />
                                                                                   ):null
                                                                                 } 
@@ -365,27 +475,98 @@ function ScholarshipHomePage({ route,navigation }) {
                                                                                       // onChangeText={text=>setEmail(text)}                                                                                
                                                                                   />
                                                                                   ):null 
+                                                                                  
                                                                                 }
-
+                                                                                {
+                                                                                  label[0]=="Account Number" ? (
+                                                                                    <TextInput
+                                                                                      style={styles.TextInput}
+                                                                                      placeholder={label[0]}
+                                                                                      placeholderTextColor="#003f5c"
+                                                                                      onChangeText={(text)=>handleInputChange(label[0],text)}                                                                                                                                                                      
+                                                                                  />
+                                                                                  ):null 
+                                                                                  
+                                                                                }
+                                                                                {
+                                                                                  label[0]=="IFSC Code" ? (
+                                                                                    <TextInput
+                                                                                      style={styles.TextInput}
+                                                                                      placeholder={label[0]}
+                                                                                      placeholderTextColor="#003f5c"
+                                                                                      onChangeText={text=>setIsIFSC(text)}                                                                                
+                                                                                  />
+                                                                                  ):null                                                                                   
+                                                                                }
+                                                                                {
+                                                                                  label[0]=="10th Year of Passing" ? (
+                                                                                    <TextInput
+                                                                                      style={styles.TextInput}
+                                                                                      placeholder={label[0]}
+                                                                                      placeholderTextColor="#003f5c"
+                                                                                      onChangeText={text=>setIsIFSC(text)}                                                                                
+                                                                                  />
+                                                                                  ):null                                                                                   
+                                                                                }
+                                                                                {
+                                                                                  label[0]=="10th Mark Percentage" ? (
+                                                                                    <TextInput
+                                                                                      style={styles.TextInput}
+                                                                                      placeholder={label[0]}
+                                                                                      placeholderTextColor="#003f5c"
+                                                                                      onChangeText={text=>setIsIFSC(text)}                                                                                
+                                                                                  />
+                                                                                  ):null                                                                                   
+                                                                                }
+                                                                                 {
+                                                                                  label[0]=="12th Year of Passing" ? (
+                                                                                    <TextInput
+                                                                                      style={styles.TextInput}
+                                                                                      placeholder={label[0]}
+                                                                                      placeholderTextColor="#003f5c"
+                                                                                      onChangeText={text=>setIsIFSC(text)}                                                                                
+                                                                                  />
+                                                                                  ):null                                                                                   
+                                                                                }
+                                                                                {
+                                                                                  label[0]=="12th Mark Percentage" ? (
+                                                                                    <TextInput
+                                                                                      style={styles.TextInput}
+                                                                                      placeholder={label[0]}
+                                                                                      placeholderTextColor="#003f5c"
+                                                                                      onChangeText={text=>setIsIFSC(text)}                                                                                
+                                                                                  />
+                                                                                  ):null                                                                                   
+                                                                                }
+                                                                                {
+                                                                                  label[0]=="Previous percentage" ? (
+                                                                                    <TextInput
+                                                                                      style={styles.TextInput}
+                                                                                      placeholder={label[0]}
+                                                                                      placeholderTextColor="#003f5c"
+                                                                                      onChangeText={text=>setIsIFSC(text)}                                                                                
+                                                                                  />
+                                                                                  ):null                                                                                   
+                                                                                }
                                                                               </View>):(
                                                                                 <View style={[styles.inputView,{justifyContent:'center',alignItems:'center'}]}>
                                                                                    {
-                                                                                      label[0]=="Address With Door Number"? <Text>{dataValue['data']['user_address_details']['address']}</Text>:null 
+                                                                                      label[0]=="Address with Door Number"? <Text>{dataValue['data']['student']['user_detail']['address']}</Text>:null 
                                                                                     }
                                                                                     {
-                                                                                      label[0]=="Country"? <Text>{dataValue['data']['user_address_details']['country']['name']}</Text>:null 
+                                                                                      label[0]=="Country"? <Text>{dataValue['data']['student']['country']['name']}</Text>:null 
                                                                                     } 
                                                                                     {
-                                                                                      label[0]=="State"? <Text>{dataValue['data']['user_address_details']['state']['name']}</Text>:null 
+                                                                                      label[0]=="State"? <Text>{dataValue['data']['student']['state']['name']}</Text>:null 
                                                                                     }
                                                                                     {
-                                                                                      label[0]=="City"? <Text>{dataValue['data']['user_address_details']['city']['name']}</Text>:null 
+                                                                                      label[0]=="City"? <Text>{dataValue['data']['student']['city']['name']}</Text>:null 
                                                                                     } 
                                                                                     {
-                                                                                      label[0]=="Pincode"? <Text>{dataValue['data']['user_address_details']['pincode']}</Text>:null 
+                                                                                      label[0]=="Pincode"? <Text>{dataValue['data']['student']['pincode']}</Text>:null 
                                                                                     }
                                                                                     {
-                                                                                      label[0]=="District"? <Text>{dataValue['data']['user_address_details']['city']['name']}</Text>:null 
+                                                                                      label[0]=="District"? <Text>{dataValue['data']['student']['city']['name']}</Text>:null 
                                                                                     }
                                                                                   </View>
                                                                               )
@@ -399,10 +580,9 @@ function ScholarshipHomePage({ route,navigation }) {
                                                                 }
 
                                                                 {
-                                                                    label[1]=='date'?(
-                                                                        <View style={styles.textBox}>
-                                                                            
-                                                                        </View>                                                                       
+                                                                    label[1]=='date'?(                                                                        
+                                                                          <DatePickerExample />                                                                           
+                                                                                                                                              
                                                                     ):null
                                                                 }
                                                                 {/* {
@@ -458,9 +638,9 @@ function ScholarshipHomePage({ route,navigation }) {
                                     </View>
                                 ):null
                             }
-                            <View style={{height:50,width:'90%',backgroundColor:'#0BCCD8',margin:20,borderRadius:10,alignItems:'center',alignSelf:'center',justifyContent:'center'}}>
+                            <TouchableOpacity style={styles.submiBtn} onPress={()=>UploadStudent()}>
                               <Text style={{fontSize:17,fontWeight:'bold',color:'#fff'}}>Submit</Text>
-                            </View>
+                            </TouchableOpacity>
                             </View>                           
                         )
                     }
@@ -478,10 +658,21 @@ function ScholarshipHomePage({ route,navigation }) {
 export default ScholarshipHomePage;
 
 const styles = StyleSheet.create({
+  submiBtn:{
+    height:50,
+    width:'90%',
+    backgroundColor:'#0BCCD8',
+    margin:20,
+    borderRadius:10,
+    alignItems:'center',
+    alignSelf:'center',
+    justifyContent:'center'
+  },
     headerpad:{
         height:150,
         backgroundColor:'#1D2F59',
-        borderRadius:20
+        borderBottomLeftRadius:20,
+        borderBottomRightRadius:20,
     },
     headpadCss:{
         flexDirection:'row',

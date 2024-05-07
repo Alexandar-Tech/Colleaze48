@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text,TouchableOpacity,StyleSheet,ActivityIndicator,ScrollView } from 'react-native';
+import { View, Text,TouchableOpacity,StyleSheet,ActivityIndicator,ScrollView, Alert } from 'react-native';
 import Icon from 'react-native-vector-icons/Entypo';
 import { LinearGradient } from 'expo-linear-gradient';
 import axios from 'axios';
 import { Dropdown } from 'react-native-element-dropdown';
 import { API_MAINSCHOLARSHIP } from '../../APILIST/ApiList';
-import ComingSoon from '../ComingSoon/ComingSoon';
+// import AlertBox from '../AlertBox';
+// import Modal from "react-native-modal";
 
 function MainScholarship({ route,navigation }) {
     
@@ -17,6 +18,19 @@ function MainScholarship({ route,navigation }) {
     const [loading, setLoading] = useState(true);
     const [value, setValue] = useState(null);
     const [schid, setSchId] = useState(null);
+    const [isVisible, setIsVisible] = useState(true);
+
+
+    const toggleSwitch = (value) => {
+        if(value){
+            navigation.navigate('ScholarshipHomePage',{
+                schid : schid
+         })
+        }
+        else{
+            Alert.alert('Please Select The Schloarship')
+        }        
+    };
 
     useEffect(() => {
         axios.post(API_URL,{},
@@ -28,16 +42,16 @@ function MainScholarship({ route,navigation }) {
         })
         .then(response => {
             setData(response.data);
-            // setLoading(false)
+            setLoading(false)
         })
         .catch(error => {
             setData(null);
         });
     }, []);
 
-    const DropdownComponent = (props) => {
+    const DropdownComponent = (valueData) => {
         const [isFocus, setIsFocus] = useState(false);
-        const name = props.name
+        const name = valueData.name
       
         const renderLabel = () => {
           if (value || isFocus) {
@@ -104,9 +118,9 @@ function MainScholarship({ route,navigation }) {
                 <View style={{padding:20}}>
                     {
                         loading?(
-                            <View style={{justifyContent:'center',alignItems:'center',marginTop:200}}>
-                                <ComingSoon />
-                            </View>                            
+                            <View>
+                            <ActivityIndicator size="large" color="#0000ff" />
+                        </View>                           
                         ):(
                             <View>
                             {
@@ -116,9 +130,7 @@ function MainScholarship({ route,navigation }) {
                                         <View style={{margin:10,width:'100%',alignSelf:'center'}}>                                        
                                             <DropdownComponent  name={'Scholarship Type'}/>
                                         </View>
-                                        <TouchableOpacity onPress={()=>navigation.navigate('ScholarshipHomePage',{
-                                            schid : schid
-                                        })}>
+                                        <TouchableOpacity onPress={()=>toggleSwitch(schid)}>
                                             <View style={{height:50,width:'90%',backgroundColor:'#0BCCD8',margin:20,borderRadius:20,alignSelf:'center',alignItems:'center',justifyContent:'center'}}>
                                                 <Text style={{fontWeight:'bold',color:'#fff',fontSize:16}}>Submit</Text>
                                             </View>
@@ -145,7 +157,8 @@ const styles = StyleSheet.create({
     headerpad:{
         height:150,
         backgroundColor:'#1D2F59',
-        borderRadius:20
+        borderBottomLeftRadius:20,
+        borderBottomRightRadius:20,
     },
     headpadCss:{
         flexDirection:'row',
@@ -210,6 +223,17 @@ const styles = StyleSheet.create({
       textcss:{
           fontSize:15,
           fontWeight:'bold'
+      },
+      modelcontainer:{
+
+      },
+      modelView:{
+        backgroundColor: 'white', 
+        padding: 16,
+        height:180,
+        borderRadius:20,
+        borderWidth:2,
+        borderColor:'#0BCCD8',
       },
 
 })

@@ -4,7 +4,7 @@ import axios from 'axios';
 import Icon from 'react-native-vector-icons/Entypo';
 import { ButtonGroup } from '@rneui/themed';
 import { API_ASSIGNMENT,API_ASSIGNMENT_COLLEGE } from '../../APILIST/ApiList';
-
+import { LinearGradient } from 'expo-linear-gradient';
 
 const VerticalDottedLine = () => {
     return (
@@ -63,12 +63,15 @@ const MainAssignment = ({route,navigation}) => {
               setLoading(false)
             })
             .catch(error => {
-              console.log(error)
-              setData(null);
+              console.log(error.response.data)
+              setData(error.response.data);
             });
       }, []);    
   return (
     <View style={{ flex: 1 }}>
+            <LinearGradient
+            colors={['skyblue', 'white']}
+            style={{flex:1}}>
       {/* Header */}
       <View style={styles.headerPad}>
           <View style={styles.headpadCss}>
@@ -97,18 +100,31 @@ const MainAssignment = ({route,navigation}) => {
         </View>
 
       {/* Middle Scrollable Content */}
+
       <ScrollView style={{ flex: 1 }}>
         {/* Content goes here */}
         <View style={{ padding: 20 }}>
+        
           {
             loading?
                 (
-                  <View>
-                        <ActivityIndicator size="large" color="#0000ff" />
+                  <View style={{flex:1}}>
+                        {
+                          data?(
+                            <View style={{alignItems:'center'}}>
+                              <Text style={{fontSize:15,fontWeight:'bold',color:'red'}}>{data.msg}</Text>
+                              </View>
+                          ):<ActivityIndicator size="large" color="#0000ff" />
+                        }
                     </View>
                 ):(<View>
                   {                    
-                      !selectedIndex?(                                     
+                      !selectedIndex?(     
+                        data['data']['pending_assignment'].length == 0?(
+                          <View style={{alignItems:'center',margin:30}}>
+                            <Text style={{fontSize:16,color:'red',fontWeight:'bold'}}>Pending Assignment Not Found</Text>
+                          </View>
+                        ):(                                
                           data['data']['pending_assignment'].map((item,index) => (
                               <View style={{flexDirection:'row',justifyContent:'space-between'}} key={item.id}>
                                   <View style={{marginTop:15}}>
@@ -117,7 +133,8 @@ const MainAssignment = ({route,navigation}) => {
                                   </View>
                                   <TouchableOpacity style={{width:'100%'}} onPress={()=>navigation.navigate('TopicAssignment',{
                                       Sub_data:item,
-                                      token:token
+                                      token:token,
+                                      userid:user_id,
                                   })}>
                                       <View style={{height:130,width:'85%',backgroundColor:colors[index%3],margin:10,borderRadius:20,}}>
                                           <View style={{margin:15}}>
@@ -135,7 +152,12 @@ const MainAssignment = ({route,navigation}) => {
                                       </View>
                                   </TouchableOpacity>
                               </View>
-                          ))):(        
+                          )))):(    
+                            data['data']['submited_assignment'].length == 0?(
+                              <View style={{alignItems:'center',margin:30}}>
+                                <Text style={{fontSize:16,color:'red',fontWeight:'bold'}}>Sumitted Assignment Not Found</Text>
+                              </View>
+                            ):(    
                                                          
                               data['data']['submited_assignment'].map((item,index) => (
                                   <View style={{flexDirection:'row',justifyContent:'space-between'}} key={item.id}>
@@ -149,17 +171,20 @@ const MainAssignment = ({route,navigation}) => {
                                           <Text style={{fontSize:15,fontWeight:'bold',color:'#FFFFFF'}}>{item.teaching_plan_detail.sub_topic_name}</Text>
                                           </View>
                                           <View style={{margin:15}}>
-                                              <Text style={{fontSize:15,fontWeight:'bold',color:'#FFFFFF'}}>Marks Obtained : {item['student_assignment'][0]['mark_obtained']}/{item.maximum_mark}</Text>
+                                              <Text style={{fontSize:15,fontWeight:'bold',color:'#FFFFFF'}}>Marks Obtained : {item['student_assignment'][0]['mark_obtained']?<Text>{item['student_assignment'][0]['mark_obtained']}/{item.maximum_mark}</Text>:<Text>-</Text>}</Text>
                                           </View>
                                           
                                       </View>
                                   </View>
-                              )))}
+                              ))))}
                   </View>)
           }
           {/* Add more content as needed */}
+          
         </View>
+        
       </ScrollView>
+      </LinearGradient>
 
       {/* Footer */}
     </View>

@@ -150,7 +150,8 @@ const styles = StyleSheet.create({
     },
     headerpad:{
         height:220,
-        borderRadius:30,
+        borderBottomLeftRadius:30,
+        borderBottomRightRadius:30,
         backgroundColor:'#1D2F59',
       },
       backpad:{

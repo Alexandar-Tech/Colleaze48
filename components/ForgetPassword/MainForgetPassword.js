@@ -1,8 +1,9 @@
 import React, { useState,useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity,ScrollView,Image,TextInput } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity,ScrollView,Image,TextInput,Alert,ActivityIndicator } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Icon from 'react-native-vector-icons/Entypo';
 import { API_FORGET,API_VALIDATEFORGET,API_RESETPASSWORD } from '../../APILIST/ApiList';
+// import AlertBox from '../AlertBox';
 
 export function MainForgetPassword({navigation}) {
     const [data, setData] = useState(null);
@@ -14,6 +15,8 @@ export function MainForgetPassword({navigation}) {
     const [check,setCheck] = useState(true);
     const [checkforget,setCheckForget] = useState(true);
     const [loginSuccess,setLoginSuccess] = useState(true);
+    const [valStatus,setValStatus] = useState(false);
+
 
     let API_URL = ''
     let response = ''
@@ -54,6 +57,14 @@ export function MainForgetPassword({navigation}) {
     
         }) 
         response = await resp.json();
+        if(response.success == 0 ){
+            Alert.alert(response.msg)
+            setValStatus(true)
+        }
+        else{
+            setLoading(true)
+        }
+
        }
        else{
         API_URL = API_VALIDATEFORGET
@@ -70,6 +81,9 @@ export function MainForgetPassword({navigation}) {
     
         }) 
         response = await resp.json();
+        if(response.success == 0 ){
+            Alert.alert(response.msg)
+        }
        }
            
         
@@ -88,6 +102,7 @@ export function MainForgetPassword({navigation}) {
             colors={['skyblue', 'white']}
             style={{flex:1}}>
                 <View style={{ flex: 1}}>
+                {/* <AlertBox valBool={valStatus}/> */}
                     <View style={styles.headerPad}>
                         <View style={styles.headpadCss}>
                             <TouchableOpacity onPress={()=>navigation.goBack()}>
@@ -145,7 +160,7 @@ export function MainForgetPassword({navigation}) {
                                     {
                                         check?(
                                             <TouchableOpacity style={styles.loginBtn} onPress={()=>ForgetPasswordFunc(0)}>
-                                                <Text style={styles.loginText}>SUBMIT</Text>
+                                                {loading?<ActivityIndicator size="large" color="#0000ff" />:<Text style={styles.loginText}>SUBMIT</Text>}
                                             </TouchableOpacity>
                                         ):(
                                             <TouchableOpacity style={styles.loginBtn} onPress={()=>ForgetPasswordFunc(1)}>

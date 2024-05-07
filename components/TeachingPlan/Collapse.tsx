@@ -36,9 +36,9 @@ function AccordionItem({ children, title }: AccordionItemPros): JSX.Element {
   );
 }
 
-function COllapse(props:any): JSX.Element {
-  const val_data = props.val
-  const token = props.token
+function COllapse(valData:any): JSX.Element {
+  const val_data = valData.val
+  const token = valData.token
   const navigation = useNavigation();
 
   return (
@@ -50,19 +50,20 @@ function COllapse(props:any): JSX.Element {
                 val_data?
                 (
                     <View>
-                        {
+                        {/* {
                             val_data['data'].map((item:any) =>(
-                                <View>
-                                    <AccordionItem title={item.subject.name} key={item.id}>
+                                <View key={item.id}>
+                                    <AccordionItem title={item.subject.name}>
                                         {
-                                          item['syllabus_details'].map((unitData:any) =>(
+                                          item['syllabus_details'].map((unitData:any,index:any) =>(
                                             <TouchableOpacity onPress={()=>navigation.navigate('TeachingPlanUnit',{
                                               unitData:unitData,
                                               subName:item.subject.name,
-                                              teacherName:item.subject.teacher.user.user_detail.name,
-                                              token:token
-                                            })} key={item.id}>
-                                                <View style={{margin:10,flex:1}}>
+                                              teacherName:item.subject.teacher,
+                                              token:token,
+                                              syllabus_details:unitData.id
+                                            })} key={index}>
+                                                <View style={{margin:10,flex:1}} key={index}>
                                                     <View style={{flexDirection:'row',justifyContent:'space-between'}}>
                                                         <Text style={{fontSize:14,fontWeight:'bold'}}>{unitData.unit}</Text>
                                                         <Icon name={'angle-right'} size={20}  />
@@ -76,7 +77,36 @@ function COllapse(props:any): JSX.Element {
                                     </AccordionItem>
                                 </View>
                             ))
+                        } */}
+                        {
+                          val_data['data'].map((item:any,index:any) =>(
+                            <View key={item.id}>
+                              {
+                                item['syllabus_details'].map((unitData:any,index:any) =>(
+                                  <TouchableOpacity onPress={()=>navigation.navigate('TeachingPlanUnit',{
+                                    unitData:unitData,
+                                    subName:item.college_subject.name,
+                                    teacherName:item.college_subject.teacher,
+                                    token:token,
+                                    syllabus_details:unitData.id
+                                  })} key={index}>
+                                  <View style={{margin:10,flex:1,backgroundColor:'#fff',minHeight:50,justifyContent:'center',borderRadius:10}} key={index}>
+                                      <View style={{flexDirection:'row',justifyContent:'space-between',padding:5}}>
+                                          <Text style={{fontSize:13,fontWeight:'bold'}}>{unitData.unit}</Text>
+                                          <Icon name={'angle-right'} size={20}  />
+                                      </View>                                            
+                                      {/* <View style={{borderBottomWidth:1,marginTop:5,opacity:0.2}}></View> */}
+                                  </View>
+                                  </TouchableOpacity>
+
+                                ))
+                              }
+                            </View>
+                            
+                          ))
                         }
+                        
+
                     </View>
                 ):null
             }
@@ -101,7 +131,6 @@ const styles = StyleSheet.create({
         alignItems:'center',
         marginRight:10,
         marginLeft:10,
-        marginTop:10
       },
       accordTitle: {
         fontSize: 16,

@@ -7,13 +7,16 @@ import { API_EVENT } from '../../APILIST/ApiList';
 
 export function Event({route,navigation}) {
     const token = route['params']['LoginData']['data']['token']
+    const org_id = route['params']['LoginData']['data']['org'][0]['id']
     const API_URL = API_EVENT
 
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        axios.post(API_URL,{},
+        axios.post(API_URL,{
+            'org_id':org_id
+        },
         {
         headers: {
             'Content-Type': 'application/json',
@@ -25,7 +28,7 @@ export function Event({route,navigation}) {
             setLoading(false)
         })
         .catch(error => {
-            setData(null);
+            setData(error.response.data);
         });
     }, []);    
 
@@ -53,14 +56,19 @@ export function Event({route,navigation}) {
                             {
                                 loading?(
                                     <View>
-                                        <ActivityIndicator size="large" color="#0000ff" />
+                                        {
+                                            data?(<View style={{justifyContent:'center',alignItems:'center',flex:1,marginTop:200}}>
+                                                <Text style={{fontSize:18,fontWeight:'bold',color:'red'}}>{data.msg}</Text>
+                                                </View>):<ActivityIndicator size="large" color="#0000ff" />
+                                        }
+                                        
                                     </View>
                                 ):(<View>
                                     {
                                         data['data'].map((item,index)=>(
                                             <View key={item.id}>
-                                                <View style={{flexDirection:'row'}}>
-                                                    <View style={{height:220,width:'95%',backgroundColor:'#fff',margin:10,alignSelf:'center',borderRadius:20}}>
+                                                <View style={{flexDirection:'row',alignSelf:'center'}}>
+                                                    <View style={{width:'100%',backgroundColor:'#fff',borderRadius:20,margin:10}}>
                                                     <Image source={require('../../assets/side_menu/Banner.png')} style={{height:80,width:'95%',margin:10,alignSelf:'center',opacity:0.5}}  />
                                                     <View style={{flexDirection:'row'}}>
                                                         <View style={{height:30,width:150,backgroundColor:'#1D2F59',borderRadius:10,alignItems:'center',justifyContent:'center',margin:5}}>
@@ -75,9 +83,8 @@ export function Event({route,navigation}) {
                                                         
                                                         <Text style={{fontSize:13,fontWeight:'bold',color:'#1D2F59',padding:5}}>{item.event_name}</Text>
                                                         <Text style={{fontSize:13,fontWeight:'bold',color:'#1D2F59',padding:5}}>{item.description}</Text>
-                                                    </View>
-                                                </View>
-                                                
+                                                    </View>                                                    
+                                                </View>                                                
                                             </View>
                                         ))
                                     }
@@ -96,7 +103,8 @@ export function Event({route,navigation}) {
 const styles = StyleSheet.create({
   headerPad:{
       height:150,
-      borderRadius:20,
+      borderBottomLeftRadius:20,
+      borderBottomRightRadius:20,
       backgroundColor:'#1D2F59',
   },
   headpadCss:{

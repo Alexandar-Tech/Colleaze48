@@ -26,8 +26,8 @@ export function LectureNotes({route,navigation}) {
                             </View>
                             <View></View>
                         </View>
-                        <View style={{height:200,width:'90%',backgroundColor:'#329AD6',alignSelf:'center',borderRadius:20,}}>
-                            <View style={{height:60,width:'90%',backgroundColor:'#fff',alignSelf:'center',margin:10,borderRadius:10,padding:10}}>
+                        <View style={{width:'90%',backgroundColor:'#329AD6',alignSelf:'center',borderRadius:20,}}>
+                            <View style={{width:'90%',backgroundColor:'#fff',alignSelf:'center',margin:10,borderRadius:10,padding:10}}>
                                 <Text style={{fontWeight:'bold'}}>Subject Title</Text>
                                 <Text style={{fontWeight:'bold',fontSize:18,color:'#0BCCD8'}}>{route_data.subject.name}</Text>
                             </View>
@@ -41,7 +41,7 @@ export function LectureNotes({route,navigation}) {
                             </View>
                         </View>
                     </View>
-                    <View style={{height:70}}></View>
+                    <View style={{height:80}}></View>
                     <ScrollView style={{flex:1}}>
                         <View style={{padding:20}}>
                             {

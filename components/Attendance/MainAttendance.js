@@ -4,7 +4,7 @@ import Icon from 'react-native-vector-icons/Entypo';
 import axios from 'axios';
 import { Dropdown } from 'react-native-element-dropdown';
 import Modal from "react-native-modal";
-import {Calendar, LocaleConfig} from 'react-native-calendars';
+import {Calendar} from 'react-native-calendars';
 import { LinearGradient } from 'expo-linear-gradient';
 import { API_ATTENDANCEMONTH,API_ATTENDANCEMONTHWISEOUNT,API_GETACADEMICYEAR,API_MONTHWISECOUNTCOLLEGE,
   API_ATTENDANCEMONTHWISECOLLEGE,API_ATTENDANCEPERIODCOLLEGE,API_ATTENDANCEPERIOD } from '../../APILIST/ApiList';
@@ -30,39 +30,20 @@ function MainAttendance({ route,navigation }) {
 
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [secondLoading, setSecondLoading] = useState(true);
     const [secondData, setSecondData] = useState(null);
     const [value, setValue] = useState(null);
+    const [valueID, setValueID] = useState(4);
     const [isVisible, setIsVisible] = useState(false);
     const [isVisibleModal, setIsVisibleModal] = useState(false);
     const [stuPer,setStuPer] = useState(0);
     const [selectedDate, setSelectedDate] = useState('2024-1-01');
+    const [selectedMonth, setSelectedMonth] = useState(null);
     const [attendancePeriod,setAttendancePeriod] = useState(null);
-    const pairs = [];
     const [markedDates, setMarkedDates] = useState({
     });
 
     const AttendanceToggle = async (day) =>{
-
-      // console.log(day.dateString)
-      // setIsVisibleModal(true)
-      // axios.post(API_ATTENDANCEPERIODCOLLEGE,{
-          // "user_id" : user_id,
-          // "attendance_date" : day.dateString
-      // },{
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //     'Authorization': `Bearer ${token}`,
-      //   },
-      // })
-      // .then(response => {
-      //   console.log(response.data.msg)
-      //   setAttendancePeriod(response.data);
-      //   setLoading(false)      
-      // })
-      // .catch(error => {
-      //   console.log(response.data.msg)
-      //     // console.error('Error fetching data:', error);
-      // });
       setIsVisibleModal(true)
 
       const resp = await fetch(API_ATTENDANCEPERIODCOLLEGE,{
@@ -80,19 +61,13 @@ function MainAttendance({ route,navigation }) {
       })    
       const response = await resp.json();
       setAttendancePeriod(response);
-      // if (response.success == '1'){
-      //   setAttendancePeriod(response.data);
-      // }
-      // else{
-      //   setAttendancePeriod(null);
-      // }
-
      }
 
 
     const toggleModal = (item) => {
       const Month = {'Jan':'01','Feb':'02','Mar':'03','Apr':'04','May':'05','Jun':'06','Jul':'07','Aug':'08','Sep':'09','Oct':'10','Nov':'11','Dec':'12'}
       setIsVisible(!isVisible);
+      setSelectedMonth(item['name'])
       let curr_month = '2024-'+Month[item['name']]+'-1'
       let month_detail = '2024-'+Month[item['name']]
       setSelectedDate(curr_month)
@@ -109,6 +84,7 @@ function MainAttendance({ route,navigation }) {
         let val_data = response.data
         let length_val_data = val_data['data']['absent']
         let length_val_data_leave = val_data['data']['leave']
+        // let length_val_data_present = val_data['data']['present']
         let markdict = {}
         let valZero = null
         for(let i=1;i<=31;i++){       
@@ -130,27 +106,14 @@ function MainAttendance({ route,navigation }) {
       }); 
     };
     
-    const DropdownComponent = (props) => {
-        
+    const DropdownComponent = (valueData) => {        
         const [isFocus, setIsFocus] = useState(false);
-        const name = props.name
-        const dropData = props.dropdownData['data']
+        let name = valueData.name
+        const dropData = valueData.dropdownData['data']
         let label_name = "academic_year"
-      
-        const renderLabel = () => {
-          if (value || isFocus) {
-            return (
-              <Text style={[styles.label, isFocus && { color: 'blue' }]}>
-                
-              </Text>
-            );
-          }
-          return null;
-        };
-      
+            
         return (
           <View style={styles.container}>
-            {renderLabel()}
             <Dropdown
               style={[styles.dropdown, isFocus && { borderColor: 'blue' }]}
               placeholderStyle={styles.placeholderStyle}
@@ -169,6 +132,7 @@ function MainAttendance({ route,navigation }) {
               onBlur={() => setIsFocus(false)}
               onChange={item => {
                 setValue(item.academic_year);
+                setValueID(item.id)
                 setIsFocus(false);
               }}
             />            
@@ -181,7 +145,7 @@ function MainAttendance({ route,navigation }) {
             // Fetch data when the component mounts
             axios.post(API_URL)
             .then(response => {
-                setData(response.data);
+                setData(response.data);           
                 setLoading(false)
             })
             .catch(error => {
@@ -190,11 +154,10 @@ function MainAttendance({ route,navigation }) {
         }, []);
     
         useEffect(() => {
-            if (value) {
-              let acdval = value.split(' ')[2] 
+
               axios.post(API_ENDPOINT,{
                 "user_id" : user_id,
-                "academic_year" : acdval
+                "academic_year_id" : valueID
               },{
                 headers: {
                     'Content-Type': 'application/json',
@@ -204,13 +167,15 @@ function MainAttendance({ route,navigation }) {
                 .then(response => {
                   setSecondData(response.data);
                   setStuPer(response.data.present_percentage);
+                  setSecondLoading(false)
                 })
                 .catch(error => {
-                  setSecondData(null);
+                  setSecondLoading(true)
+                  setSecondData(error.response.data);
                   setStuPer(0)
                 });
-            }
-          }, [value]);
+            
+          }, [valueID]);
   return (
     
     <View style={{ flex: 1 }}> 
@@ -225,7 +190,7 @@ function MainAttendance({ route,navigation }) {
                 <View style={styles.fittocontent}>
                   <Text style={{fontSize:20,color:'#1D2F59',fontWeight:'bold'}}>Attendance</Text>
                   <View style={{height:30,width:100,borderWidth:1,borderRadius:10,alignItems:'center',justifyContent:'center'}}>
-                    <Text style={{fontSize:15,color:'#1D2F59',fontWeight:'bold'}}>Jan 24</Text>
+                    <Text style={{fontSize:15,color:'#1D2F59',fontWeight:'bold'}}>{selectedMonth}</Text>
                   </View>
                 </View>
                 <View style={{}}>
@@ -340,16 +305,27 @@ function MainAttendance({ route,navigation }) {
                             <Text style={{fontSize:13,fontWeight:'bold'}}>{stuPer} %</Text>
                           </View>
                       </View>
-                      <View style={{margin:20,width:'90%',top:20}}>
-                          <DropdownComponent name={data['data'][0]['academic_year']} dropdownData={data} />
-                      </View>            
+                      {
+                        data.data.map((item,index)=>(
+                          <View key={index}>
+                            {
+                              item.is_current_year == 'yes'?(
+                                <View style={{margin:20,width:'90%',top:20}}>
+                                    <DropdownComponent name={item.academic_year} dropdownData={data}/>
+                                </View>
+                              ):null
+                            }
+                            </View>
+                        ))
+                      }
+                                  
                   </View>
                   <ScrollView style={{ flex: 1 }}>
                     <View style={{ padding: 20 }}>
                       {
-                        secondData?(
+                        !secondLoading?(
                         <View >
-                                   <View style={{flexDirection:'row',justifyContent:'space-evenly'}}>
+                                <View style={{flexDirection:'row',justifyContent:'space-evenly'}}>
                                     <Text></Text>
                                     <Text style={styles.textcss}>Present</Text>
                                     <Text style={styles.textcss}>Absent</Text>
@@ -378,14 +354,12 @@ function MainAttendance({ route,navigation }) {
                                 ))}
                                 <View style={styles.submitBtn}>
                                     <Text style={[styles.textcss,{color:'#fff'}]}>Apply for Leave</Text>
-
-                                </View>
-                          
+                                </View>                          
                         </View>
                           ):(
                             <View style={{justifyContent:'center',alignItems:'center',flex:1,marginTop:screenHeight/3}}>
-                            <Text style={{fontSize:20,fontWeight:'bold',color:'red'}}>No Data Found</Text>                                    
-                        </View>
+                                {secondData?<Text style={{fontSize:20,fontWeight:'bold',color:'red'}}>{secondData.msg}</Text>:<ActivityIndicator size="large" color="#0000ff" />}
+                            </View>
                           )
                       }
                     </View>

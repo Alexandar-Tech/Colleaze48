@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState,useCallback,useEffect  } from "react";
 import {
   View,
   StyleSheet,
@@ -10,16 +10,17 @@ import {
   SafeAreaView,
   BackHandler,
   Alert
-
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Entypo';
 import IconMA from 'react-native-vector-icons/MaterialIcons';
 import { LinearGradient } from 'expo-linear-gradient';
 import Modal from "react-native-modal";
 import { useFocusEffect } from '@react-navigation/native';
+import { useFonts } from 'expo-font';
 
-const HomeMenu = ({ route,navigation }) =>{
-    
+const screenWidth = Dimensions.get('window').width;
+
+const HomeMenu = ({ route,navigation }) =>{   
   const HomeData = route['params']['HomeData'] 
   const [isVisible, setIsVisible] = useState(false);
 
@@ -41,27 +42,35 @@ const HomeMenu = ({ route,navigation }) =>{
     }
   };
 
-  useFocusEffect(
-    React.useCallback(() => {
-      const onBackPress = () => {
+  const [fontsLoaded] = useFonts({
+    'circular': require('../../assets/fonts/circular-std-medium-500.ttf'),
+  });
+
+  if (!fontsLoaded) {
+    return null;
+  }
+
+//   useEffect(
+//     useCallback(() => {
+//       const onBackPress = () => {
        
-       Alert.alert('Hold on!', 'Are you sure you want to go back?', [
-          {
-            text: 'Cancel',
-            onPress: () => null,
-            style: 'cancel',
-          },
-          {text: 'YES', onPress: () => navigation.goBack()},
-        ]);
-        return true;
-      };
+//        Alert.alert('Hold on!', 'Are you sure you want to go back?', [
+//           {
+//             text: 'Cancel',
+//             onPress: () => null,
+//             style: 'cancel',
+//           },
+//           {text: 'YES', onPress: () => navigation.goBack()},
+//         ]);
+//         return true;
+//       };
 
-      BackHandler.addEventListener('hardwareBackPress', onBackPress);
+//       BackHandler.addEventListener('hardwareBackPress', onBackPress);
 
-      return () =>
-        BackHandler.removeEventListener('hardwareBackPress', onBackPress);
-    }, []),
-  );
+//       return () =>
+//         BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+//     }, []),
+//   );
 
 
   
@@ -83,6 +92,7 @@ const HomeMenu = ({ route,navigation }) =>{
                     <View style={styles.TimetableBox}>
                         <LinearGradient
                         colors={['skyblue', 'white']}
+                        start={{x: 1, y: 1}} end={{x: 0.5, y: 0}}
                         style={{height:120,borderRadius:20}}>
                             <Image style={{height:50,width:50,alignSelf:'center',top:10}} source={require('../../assets/TimeTable/planning.png')}  />
                             <Text style={styles.textmodalcss}>Class TIme-Table</Text>
@@ -93,6 +103,7 @@ const HomeMenu = ({ route,navigation }) =>{
                     <View style={styles.TimetableBox}>
                         <LinearGradient
                         colors={['skyblue', 'white']}
+                        start={{x: 1, y: 0.5}} end={{x: 0.5, y: 0}}
                         style={{height:120,borderRadius:20}}>
                             <Image style={{height:50,width:50,alignSelf:'center',top:10}} source={require('../../assets/TimeTable/calendar.png')}  />
                             <Text style={styles.textmodalcss}>Exam TIme-Table</Text>
@@ -102,7 +113,7 @@ const HomeMenu = ({ route,navigation }) =>{
             </View>
             </View>
         </Modal>
-    <ScrollView>
+
         <View style={[styles.fixToText,{marginTop:30}]}>
             <TouchableOpacity onPress={() => navigation.toggleDrawer()}>
                 <View style={[styles.box,{backgroundColor:'#1D2F59'}]}>            
@@ -112,161 +123,151 @@ const HomeMenu = ({ route,navigation }) =>{
             <View>
                 <Image style={styles.logo} source={require('../../assets/Institution/Mam_logoo.png')}  />
             </View>
-            <View style={[styles.box,{borderWidth:0.4,backgroundColor:'#fff'}]}>
+            {/* <View style={[styles.box,{}]}>
                 <IconMA name="search" color='black' size={25} />
-            </View>
-            <View style={[styles.box,{borderWidth:0.4,backgroundColor:'#fff'}]}>
-                <IconMA name="notifications-none" color='black' size={20} />
-            </View>            
+            </View> */}
+            <TouchableOpacity style={[styles.box,{}]} onPress={()=>navigation.navigate('Notification')}>
+                <IconMA name="notifications-none" color='black' size={25} />
+            </TouchableOpacity>            
         </View>
         <View style={{flexDirection:'row',justifyContent:'space-between',margin:15}}>
             <Text style={styles.catText}>Hi, {HomeData.data.user_detail.name}</Text>
-            <View style={{flexDirection:'row',columnGap:5}}>
-                <Icon name="location-pin" size={20}/>
-                <Text style={styles.catText}>Trichy</Text>
-                <IconMA name="keyboard-arrow-down" size={20} style={{top:5}}/>
-            </View>
         </View>
-        <View style={{height:300,borderRadius:10}}>
-            <LinearGradient
-                colors={['skyblue', 'white']}
-                style={{height:300}}
-                start={{x:0.5,y:1}}
-                end={{x:1,y:1}}
-                >                    
-                    <Image source={require('../../assets/side_menu/Banner.png')} style={{height:180,width:'95%',margin:10}}  />
-                    <View style={styles.fixToText}>
-                        <TouchableOpacity onPress={() => navigation.navigate('MainAttendance',{
-                            LoginData:HomeData
-                        })}>
+        <ScrollView style={{ flex: 1}}>
+            <View style={{ paddingBottom:10}}>
+                <View style={{height:300,borderRadius:10,}}>
+                    <LinearGradient
+                        colors={['skyblue', 'white']}
+                        style={{height:300}}
+                        start={{x: 0.5, y: 1}} end={{x: 0.5, y: 0}}
+                    >                    
+                        <Image source={require('../../assets/side_menu/Banner.png')} style={{height:180,width:'95%',margin:10}}  />
+                        <View style={styles.fixToText}>
+                            <TouchableOpacity onPress={() => navigation.navigate('MainAttendance',{
+                                LoginData:HomeData
+                            })}>
+                                <View style={styles.boxshadow}>
+                                    <Image source={require('../../assets/Home_mvp/balloons_1.png')} style={styles.imgstyle}  />
+                                </View>
+                            </TouchableOpacity>
+                            <TouchableOpacity onPress={() => navigation.navigate('MainTeachingPlan',{
+                                LoginData:HomeData
+                            })}>
+                                <View style={styles.boxshadow}>
+                                    <Image source={require('../../assets/Home_mvp/calendar.png')} style={styles.imgstyle}  />
+                                </View>
+                            </TouchableOpacity>
+                            <TouchableOpacity onPress={() => navigation.navigate('MySchedule',{
+                                LoginData:HomeData
+                            })}>
                             <View style={styles.boxshadow}>
-                                <Image source={require('../../assets/Home_mvp/balloons_1.png')} style={styles.imgstyle}  />
+                                <Image source={require('../../assets/Home_mvp/money_1.png')} style={styles.imgstyle}  />
                             </View>
-                        </TouchableOpacity>
-                        <TouchableOpacity onPress={() => navigation.navigate('MainTeachingPlan',{
-                            LoginData:HomeData
-                        })}>
-                            <View style={styles.boxshadow}>
-                                <Image source={require('../../assets/Home_mvp/calendar.png')} style={styles.imgstyle}  />
-                            </View>
-                        </TouchableOpacity>
-                        <TouchableOpacity onPress={() => navigation.navigate('MySchedule',{
-                            LoginData:HomeData
-                        })}>
-                        <View style={styles.boxshadow}>
-                            <Image source={require('../../assets/Home_mvp/money_1.png')} style={styles.imgstyle}  />
+                            </TouchableOpacity>
                         </View>
-                        </TouchableOpacity>
-                    </View>
-                    <View style={styles.fixToText}>
-                        <Text style={styles.textcss}>Attendance</Text>
-                        <Text style={styles.textcss}>Teaching Plan</Text>
-                        <Text style={styles.textcss}>My Schedule</Text>
-                    </View>                    
-            </LinearGradient>
-        </View>
-        <View>
-            <Text style={[styles.textcss,{fontSize:20,left:30}]}>My Academics</Text>
-        </View>
-        <View style={{padding:10}}>
-        <View style={[styles.fixToText,{marginTop:15}]}>
-            
-            <TouchableOpacity onPress={()=>toggleModal()}>
-                <View style={styles.boxgrey}>
-                    <View style={styles.circlecss}>
-                        <Image source={require('../../assets/Home_mvp/time_manage.png')} style={styles.imgstyle}  />
-                    </View>
-                    <Text style={[styles.textcss,{textAlign:'center'}]}>Time Table</Text>
+                        <View style={styles.fixToText}>
+                            <Text style={[styles.textcss,{top:10,fontWeight:'bold'}]}>ATTENDANCE</Text>
+                            <Text style={[styles.textcss,{top:10,fontWeight:'bold'}]}>TEACHING PLAN</Text>
+                            <Text style={[styles.textcss,{top:10,fontWeight:'bold'}]}>MY SCHEDULE</Text>
+                        </View>                    
+                    </LinearGradient>
+                </View>  
+                <View style={[styles.fixToText,{paddingTop:10,paddingRight:10,paddingLeft:10}]}>                    
+                    <TouchableOpacity onPress={()=>toggleModal()}>
+                        <View style={styles.boxgrey}>
+                            <View style={styles.circlecss}>
+                                <Image source={require('../../assets/Home_mvp/time_manage.png')} style={styles.imgstyle}  />
+                            </View>
+                            <Text style={[styles.textcss,{textAlign:'center'}]}>TIME TABLE</Text>
+                        </View>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => navigation.navigate('Fees',{
+                                    LoginData:HomeData
+                                })}>
+                        <View style={styles.boxgrey} >
+                            <View style={styles.circlecss}>
+                                <Image source={require('../../assets/Home_mvp/money_1.png')} style={styles.imgstyle}  />
+                            </View>
+                            <Text style={[styles.textcss,{textAlign:'center'}]}>FEES</Text>
+                        </View>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => navigation.navigate('MainAssignment',{
+                                    LoginData:HomeData
+                                })}>
+                        <View style={styles.boxgrey}>
+                            <View style={styles.circlecss}>
+                                <Image source={require('../../assets/Home_mvp/money_1.png')} style={styles.imgstyle}  />
+                            </View>
+                            <Text style={[styles.textcss,{textAlign:'center'}]}>ASSIGNMENTS</Text>
+                        </View> 
+                    </TouchableOpacity>                       
                 </View>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => navigation.navigate('Fees',{
-                            LoginData:HomeData
-                        })}>
-                <View style={styles.boxgrey} >
-                    <View style={styles.circlecss}>
-                        <Image source={require('../../assets/Home_mvp/money_1.png')} style={styles.imgstyle}  />
-                    </View>
-                    <Text style={[styles.textcss,{textAlign:'center'}]}>Fees</Text>
+                <View style={[styles.fixToText,{paddingRight:10,paddingLeft:10}]}>
+                    <TouchableOpacity onPress={() => navigation.navigate('MainAssessment',{
+                                    LoginData:HomeData
+                                })}>
+                        <View style={styles.boxgrey}>
+                            <View style={styles.circlecss}>
+                                <Image source={require('../../assets/Home_mvp/money_1.png')} style={styles.imgstyle}  />
+                            </View>
+                            <Text style={[styles.textcss,{textAlign:'center'}]}>ASSESSMENT</Text>
+                        </View>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => navigation.navigate('ODRequest',{
+                                    LoginData:HomeData
+                                })}>
+                        <View style={styles.boxgrey}>
+                            <View style={styles.circlecss}>
+                                <Image source={require('../../assets/Home_mvp/money_1.png')} style={styles.imgstyle}  />
+                            </View>
+                            <Text style={[styles.textcss,{textAlign:'center'}]}>OD / LEAVE</Text>
+                        </View>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => navigation.navigate('MainServiceRequest',{
+                                    LoginData:HomeData
+                                })}>
+                            <View style={styles.boxgrey}>
+                                <View style={styles.circlecss}>
+                                    <Image source={require('../../assets/side_menu/books.png')} style={styles.imgstyle}  />
+                                </View>
+                                <Text style={[styles.textcss,{textAlign:'center'}]}>SERVICE REQUEST</Text>
+                            </View> 
+                    </TouchableOpacity>                       
                 </View>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => navigation.navigate('MainAssignment',{
-                            LoginData:HomeData
-                        })}>
-                <View style={styles.boxgrey}>
-                    <View style={styles.circlecss}>
-                        <Image source={require('../../assets/Home_mvp/money_1.png')} style={styles.imgstyle}  />
-                    </View>
-                    <Text style={[styles.textcss,{textAlign:'center'}]}>Assignments</Text>
-                </View> 
-            </TouchableOpacity>                       
-        </View>
-        <View style={[styles.fixToText,{marginTop:15}]}>
-            <TouchableOpacity onPress={() => navigation.navigate('MainAssessment',{
-                            LoginData:HomeData
-                        })}>
-                <View style={styles.boxgrey}>
-                    <View style={styles.circlecss}>
-                        <Image source={require('../../assets/Home_mvp/money_1.png')} style={styles.imgstyle}  />
-                    </View>
-                    <Text style={[styles.textcss,{textAlign:'center'}]}>Assessment & Report</Text>
-                </View>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => navigation.navigate('ODRequest',{
-                            LoginData:HomeData
-                        })}>
-                <View style={styles.boxgrey}>
-                    <View style={styles.circlecss}>
-                        <Image source={require('../../assets/Home_mvp/money_1.png')} style={styles.imgstyle}  />
-                    </View>
-                    <Text style={[styles.textcss,{textAlign:'center'}]}>OD / Leave</Text>
-                </View>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => navigation.navigate('MainServiceRequest',{
-                            LoginData:HomeData
-                        })}>
+                <View style={[styles.fixToText,{paddingRight:10,paddingLeft:10}]}>
+                    <TouchableOpacity onPress={() => navigation.navigate('MyPerformance',{
+                                    LoginData:HomeData
+                                })}>
                     <View style={styles.boxgrey}>
                         <View style={styles.circlecss}>
-                            <Image source={require('../../assets/side_menu/books.png')} style={styles.imgstyle}  />
+                            <Image source={require('../../assets/Home_mvp/money_1.png')} style={styles.imgstyle}  />
                         </View>
-                        <Text style={[styles.textcss,{textAlign:'center'}]}>Service Request</Text>
-                    </View> 
-            </TouchableOpacity>                       
-        </View>
-        <View style={[styles.fixToText,{marginTop:15}]}>
-            <TouchableOpacity onPress={() => navigation.navigate('MyPerformance',{
-                            LoginData:HomeData
-                        })}>
-            <View style={styles.boxgrey}>
-                <View style={styles.circlecss}>
-                    <Image source={require('../../assets/Home_mvp/money_1.png')} style={styles.imgstyle}  />
-                </View>
-                <Text style={[styles.textcss,{textAlign:'center'}]}>My Performance</Text>
-            </View>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => navigation.navigate('Activites',{
-                            LoginData:HomeData
-                        })}>
-            <View style={styles.boxgrey}>
-                <View style={styles.circlecss}>
-                    <Image source={require('../../assets/Home_mvp/money_1.png')} style={styles.imgstyle}  />
-                </View>
-                <Text style={[styles.textcss,{textAlign:'center'}]}>My Activities</Text>
-            </View>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => navigation.navigate('Event',{
-                            LoginData:HomeData
-                        })}>
-                <View style={styles.boxgrey}>
-                    <View style={styles.circlecss}>
-                        <Image source={require('../../assets/Home_mvp/money_1.png')} style={styles.imgstyle}  />
+                        <Text style={[styles.textcss,{textAlign:'center'}]}>OVERALL ATTENDANCE</Text>
                     </View>
-                    <Text style={[styles.textcss,{textAlign:'center'}]}>Events</Text>
-                </View> 
-            </TouchableOpacity>                       
-        </View>
-        </View>                
-
-    </ScrollView>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => navigation.navigate('Activites',{
+                                    LoginData:HomeData
+                                })}>
+                    <View style={styles.boxgrey}>
+                        <View style={styles.circlecss}>
+                            <Image source={require('../../assets/Home_mvp/money_1.png')} style={styles.imgstyle}  />
+                        </View>
+                        <Text style={[styles.textcss,{textAlign:'center'}]}>MY ACTVITIES</Text>
+                    </View>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => navigation.navigate('Event',{
+                                    LoginData:HomeData
+                                })}>
+                        <View style={styles.boxgrey}>
+                            <View style={styles.circlecss}>
+                                <Image source={require('../../assets/Home_mvp/money_1.png')} style={styles.imgstyle}  />
+                            </View>
+                            <Text style={[styles.textcss,{textAlign:'center'}]}>EVENTS</Text>
+                        </View> 
+                    </TouchableOpacity>                       
+                </View>              
+            </View>
+        </ScrollView>
     </SafeAreaView>
   );
 }
@@ -276,10 +277,11 @@ export default HomeMenu;
 const styles = StyleSheet.create({
     boxgrey:{
         height:100,
-        width:120,
+        width:screenWidth/3.3,
         backgroundColor:'#CFF5F7',
         borderRadius:10,
-        margin:10
+        marginTop:10,
+        marginBottom:10
     },
     circlecss:{
         height:50,
@@ -297,7 +299,7 @@ const styles = StyleSheet.create({
   },
   imgcss: {
     height: 180,
-    width: Dimensions.get('window').width,
+    width: screenWidth,
   },
   container: {
     backgroundColor: '#FFFFFF',
@@ -314,12 +316,14 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   box:{
-    height:40,
-    width:40,
+    height:45,
+    width:45,
     borderRadius:10,
     top:20,
     justifyContent:'center',
-    alignItems:'center'
+    alignItems:'center',
+    borderWidth:1,
+    borderColor:'#1D2F59',
   },
   boxshadow:{
     height:60,
@@ -332,8 +336,9 @@ const styles = StyleSheet.create({
   },
   textcss:{
     fontSize:15,
-    fontWeight:'bold',
-    color:'#1D2F59'
+    fontFamily:'circular',
+    color:'#1D2F59',
+    fontWeight:'bold'
   },
   imgstyle:{
     height:30,

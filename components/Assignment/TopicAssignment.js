@@ -42,7 +42,7 @@ function TopicAssignment({ route,navigation }) {
 
             </View>
             <TouchableOpacity style={styles.submitBtn} onPress={()=>navigation.navigate('UploadAssignment',{
-                token:route['params']['token']
+                topicData:topicData
             })}>
                 <Text style={styles.btnCss}>Upload Assignment</Text>
             </TouchableOpacity>

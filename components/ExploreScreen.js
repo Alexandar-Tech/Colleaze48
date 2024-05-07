@@ -1,5 +1,5 @@
 import React, { useState,useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity,Image,ScrollView,ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity,Image,ScrollView,ActivityIndicator,Dimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Icon from 'react-native-vector-icons/Entypo';  
 import Calendar from './TimeTable/Calendar';
@@ -7,8 +7,16 @@ import { API_CIRCULAR_COLLEGE } from '../APILIST/ApiList';
 import axios from 'axios';
 
 export function ExploreScreen({route,navigation}) {
-  const [selectedDate, setSelectedDate] = useState(null);
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = today.getMonth() + 1; // Months are zero-based
+  const day = today.getDate();
+
+  const todayDate = `${year}-${month < 10 ? '0' + month : month}-${day < 10 ? '0' + day : day}`;
+  const [selectedDate, setSelectedDate] = useState(todayDate);  
+  const screenHeight = Dimensions.get('screen').height;
   const token = route['params']['HomeData']['data']['token']
+  const org_id = route['params']['HomeData']['data']['org'][0]['id']
   const API_URL = API_CIRCULAR_COLLEGE
 
     const [data, setData] = useState(null);
@@ -16,8 +24,8 @@ export function ExploreScreen({route,navigation}) {
 
     useEffect(() => {
         axios.post(API_URL,{
-          "date" : "2024-01-31",
-          "org_id" : 151
+          "date" : selectedDate,
+          "org_id" : org_id
         },
         {
         headers: {
@@ -31,8 +39,9 @@ export function ExploreScreen({route,navigation}) {
         })
         .catch(error => {
             setData(null);
+            setLoading(false)
         });
-    }, []);
+    }, [selectedDate]);
   return(
     <>
             <LinearGradient
@@ -48,12 +57,9 @@ export function ExploreScreen({route,navigation}) {
                         </TouchableOpacity>
                         <View>
                             <Text style={styles.headerText}>Circular/Announcements</Text>
-                        </View>
-                        <TouchableOpacity onPress={()=>navigation.goBack()}>
-                            <View style={styles.headpad}>
-                            <Image style={styles.logo} source={require('../assets/EducationalLoan/Vector.png')} />
-                            </View>
-                        </TouchableOpacity>           
+                        </View> 
+                        <View style={[styles.headpad,{opacity:0}]}>                        
+                        </View>         
                     </View>
                     <Calendar onSelectDate={setSelectedDate} selected={selectedDate}/>
                 </View>
@@ -75,13 +81,13 @@ export function ExploreScreen({route,navigation}) {
                                           token:token
                                         })} key={item.id}>
                                           <View style={styles.boxcss}>
-                                            <View style={{flexDirection:'row',justifyContent:'space-between',margin:20}}>
+                                            <View style={{flexDirection:'row',justifyContent:'space-between',margin:10}}>
                                               <View>
                                                 <Image style={styles.miclogo} source={require('../assets/profile/mic_circular.png')} />
                                               </View>
                                               <View style={{width:'70%'}}>
-                                                <Text style={{fontSize:16,fontWeight:'bold'}}>{item.subject}</Text>
-                                                <View style={{flexDirection:'row',justifyContent:'space-between',top:50}}>
+                                                <Text style={{fontSize:15,fontWeight:'600'}}>{item.subject}</Text>
+                                                <View style={{flexDirection:'row',justifyContent:'space-around',top:10}}>
                                                   <Text style={{fontSize:10,fontWeight:'bold',color:'#1D2F59'}}>{item.date_formatted}</Text>
                                                   <Text style={{fontSize:10,fontWeight:'bold',color:'#329AD6',textDecorationLine:'underline',}}>View Details</Text>
                                                 </View>
@@ -92,14 +98,15 @@ export function ExploreScreen({route,navigation}) {
                                        ))
                                     }
                                     </View>
-                              
-
-                                  ):null
+                                  ):(
+                                    <View style={{justifyContent:'center',alignItems:'center',flex:1,marginTop:screenHeight/3}}>
+                                      <Text style={{fontSize:20,fontWeight:'bold',color:'red'}}>No Data Found</Text>                                    
+                                  </View>
+                                  )
                                 }
                                 </View>
                         )
                     }
-                    
                   </View>
                 </ScrollView>
               </View>
@@ -116,7 +123,8 @@ const styles = StyleSheet.create({
 },
 headerPad:{
     height:230,
-    borderRadius:20,
+    borderBottomLeftRadius:20,
+    borderBottomRightRadius:20,
     backgroundColor:'#1D2F59',
 },
 headpadCss:{
@@ -124,7 +132,6 @@ headpadCss:{
     marginTop:60,
     justifyContent:'space-between',
     paddingHorizontal:10,
-    margin:10
 },
 headpad:{
     height:50,
@@ -146,14 +153,15 @@ logo:{
     width:20
 },
 boxcss:{
-  height:150,
+  flex:1,
   width:'100%',
   backgroundColor:'#fff',
   margin:10,
   borderRadius:20,
   borderWidth:1,
   borderColor:'#0BCCD8',
-  alignSelf:'center'
+  alignSelf:'center',
+  paddingBottom:20
 },
 miclogo:{
   height:100,

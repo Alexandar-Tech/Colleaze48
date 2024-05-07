@@ -2,11 +2,16 @@ import React, { useEffect, useState } from 'react';
 import { View, Text,TouchableOpacity,StyleSheet,Image } from 'react-native';
 import Icon from 'react-native-vector-icons/Entypo';
 import { Dropdown } from 'react-native-element-dropdown';
-import { API_ASSIGNMENTSUBJECT,API_ASSIGNMENTTOPICS } from '../../APILIST/ApiList';
+import { API_ASSIGNMENTSUBJECT,API_UPLOAD_ASSIGNMENT } from '../../APILIST/ApiList';
 import axios from 'axios';
+// import * as DocumentPicker from 'expo-document-picker';
+import FilePickerExample from './FilePicker';
 
 function UploadAssignment({ route,navigation }) {
-  const token = route['params']['token']
+  
+
+  const UploadData = route['params']['topicData']
+  const token = UploadData['token']
   const [subjectData, setSubjectData] = useState(null);
   const [topicData, setTopicData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -61,7 +66,7 @@ function UploadAssignment({ route,navigation }) {
     //       });
     // }, []);
 
-    const DropdownComponent = (props) => {
+    const DropdownComponent = () => {
         const [value, setValue] = useState(null);
         const [isFocus, setIsFocus] = useState(false);
     
@@ -101,7 +106,7 @@ function UploadAssignment({ route,navigation }) {
       }; 
       
       
-      const DropdownComponentAssignment = (props) => {
+      const DropdownComponentAssignment = () => {
         const [value, setValue] = useState(null);
         const [isFocus, setIsFocus] = useState(false);      
         return (
@@ -154,15 +159,10 @@ function UploadAssignment({ route,navigation }) {
             </View>
             <View style={styles.boxcss}>
                 <Text style={[styles.textcss]}>Upload Assignment</Text>
-                <View style={styles.boxpad}>
-                    <Text style={{color:'#fff',fontSize:20,fontWeight:'bold'}}> Upload</Text>
-                </View>
-                
+                <FilePickerExample data={UploadData}/>                
             </View>
         </View>
     )
-
-
 }
 export default UploadAssignment;
 const styles = StyleSheet.create({
