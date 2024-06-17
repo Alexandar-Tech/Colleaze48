@@ -9,7 +9,9 @@ import {
   ScrollView,
   SafeAreaView,
   BackHandler,
-  Alert
+  Alert,
+  Linking
+
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Entypo';
 import IconMA from 'react-native-vector-icons/MaterialIcons';
@@ -245,14 +247,12 @@ const HomeMenu = ({ route,navigation }) =>{
                         <Text style={[styles.textcss,{textAlign:'center'}]}>OVERALL ATTENDANCE</Text>
                     </View>
                     </TouchableOpacity>
-                    <TouchableOpacity onPress={() => navigation.navigate('Activites',{
-                                    LoginData:HomeData
-                                })}>
+                    <TouchableOpacity onPress={()=>Linking.openURL('https://www.nizcare.com/corporate_user?phone_no=8787878787')}>
                     <View style={styles.boxgrey}>
                         <View style={styles.circlecss}>
                             <Image source={require('../../assets/Home_mvp/money_1.png')} style={styles.imgstyle}  />
                         </View>
-                        <Text style={[styles.textcss,{textAlign:'center'}]}>MY ACTVITIES</Text>
+                        <Text style={[styles.textcss,{textAlign:'center'}]}>Health & Wellness</Text>
                     </View>
                     </TouchableOpacity>
                     <TouchableOpacity onPress={() => navigation.navigate('Event',{

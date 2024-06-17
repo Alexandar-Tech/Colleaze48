@@ -142,9 +142,16 @@ const MainAssignment = ({route,navigation}) => {
                                           <Text style={{fontSize:15,fontWeight:'bold',color:'#FFFFFF'}}>{item.teaching_plan_detail.sub_topic_name}</Text>
                                           </View>
                                           <View style={{flexDirection:'row',justifyContent:'space-evenly'}}>
-                                              <View style={{height:30,width:120,backgroundColor:'#1D2F59',borderRadius:10,margin:10,alignItems:'center',justifyContent:'center'}}>
-                                                  <Text style={{fontSize:15,fontWeight:'bold',color:'#8BF9FF'}}>{item.subject.teacher.user.user_detail.name}</Text>
+                                            {
+                                              item.subject.teacher?(
+                                                <View style={{height:30,width:120,backgroundColor:'#1D2F59',borderRadius:10,margin:10,alignItems:'center',justifyContent:'center'}}>
+                                                  <Text style={{fontSize:12,fontWeight:'bold',color:'#8BF9FF'}}>{item.subject.teacher.user.user_detail.name}</Text>
                                               </View>
+                                              ):(
+                                                <View style={{height:30,width:120,borderRadius:10,margin:10}}>
+                                              </View>)
+                                            }
+                                              
                                               <View style={{margin:10,top:5}}>
                                                   <Text style={{fontSize:13,fontWeight:'bold',color:'#fff'}}>maximum_mark : {item.maximum_mark}</Text>
                                               </View>

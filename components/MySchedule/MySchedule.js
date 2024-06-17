@@ -8,7 +8,7 @@ import ComingSoon from '../ComingSoon/ComingSoon';
 const MySchedule = ({navigation}) => {
   
   const colors = ['#3A72A0', '#689698', '#0BCCD8',]; 
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const today = new Date();
     const year = today.getFullYear();
     const month = today.getMonth() + 1; // Months are zero-based
